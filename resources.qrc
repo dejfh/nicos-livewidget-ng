@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icons/SelectLine.png</file>
+        <file>Icons/SelectRect.png</file>
+        <file>Icons/ViewAll.png</file>
+        <file>Icons/ZoomIn.png</file>
+        <file>Icons/ZoomOut.png</file>
+        <file>Icons/Drag.png</file>
+        <file>Icons/Zoom100.png</file>
+        <file>Icons/ZoomSelection.png</file>
+    </qresource>
+</RCC>

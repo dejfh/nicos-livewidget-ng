@@ -1,0 +1,6 @@
+/*!
+\defgroup Filter FitsHelper
+C++ wrapper for cfitsio
+
+
+*/
