@@ -210,27 +210,27 @@ _Result accumulate(_Result init, _Operation op, const ::std::tuple<_Args...> &ar
 
 // call
 template <typename _Result, typename _Operation, typename _Args, size_t... I>
-_Result _callR(_Operation op, _Args &args, Sequence<I...>)
+_Result _callR(_Operation &op, _Args &args, Sequence<I...>)
 {
 	return op(std::get<I>(args)...);
 }
 
 template <typename _Operation, typename _Args, size_t... I>
-void _callV(_Operation op, _Args &args, Sequence<I...>)
+void _callV(_Operation &op, _Args &args, Sequence<I...>)
 {
 	op(std::get<I>(args)...);
 }
 
 template <typename _Operation, typename... _Args>
-auto call(_Operation op, std::tuple<_Args...> &args) //
-	-> not_void_t<result_of_t<_Operation, _Args...>>
+auto call(_Operation &op, std::tuple<_Args...> &args) //
+	-> not_void_t<result_of_t<_Operation, _Args &...>>
 {
 	return _callR<typename result_of<_Operation, _Args...>::type>(op, args, makeSequence(args));
 }
 
 template <typename _Operation, typename... _Args>
-auto call(_Operation op, std::tuple<_Args...> &args) //
-	-> only_void_t<result_of_t<_Operation, _Args...>>
+auto call(_Operation &op, std::tuple<_Args...> &args) //
+	-> only_void_t<result_of_t<_Operation, _Args &...>>
 {
 	_callV(op, args, makeSequence(args));
 }

@@ -6,7 +6,6 @@
 #include "filter/filter.h"
 
 #include "filter/buffer.h"
-#include "ndimfilter/mean.h"
 #include "ndimfilter/transform.h"
 
 #include "filter/chains/fitspile.h"
@@ -23,6 +22,8 @@ public:
 	using ElementType = _ElementType;
 	static const size_t Dimensionality = _Dimensionality;
 
+	using SharedFilterPtr = std::shared_ptr<DataFilter<ElementType, Dimensionality>>;
+
 private:
 	FitsPileChain<ElementType, Dimensionality> m_darkImagePile;
 	FitsPileChain<ElementType, Dimensionality> m_openBeamPile;
@@ -31,39 +32,13 @@ private:
 	std::shared_ptr<filter::Buffer<ElementType, Dimensionality>> m_openBeamBuffer;
 
 public:
-	DarkImageAndOpenBeamChain()
-	{
-		// Calcualte mean values
-		auto darkImageMean = filter::makeMean("Generating dark image...", m_darkImagePile.pileBuffer(), 0);
-		// Buffer resulting dark images for repeated use
-		m_darkImageBuffer = filter::makeBuffer(darkImageMean);
+	DarkImageAndOpenBeamChain();
 
-		// Calculate mean values
-		auto openBeamMean = filter::makeMean("Generating open beam...", m_openBeamPile.pileBuffer(), 0);
-		// Subtract dark image
-		auto openBeamSubstractDarkImage =
-			filter::makeTransform("Subtract dark image from open beam...", std::minus<float>(), 1, openBeamMean, m_darkImageBuffer);
-		// Buffer resulting open beam image for repeated use
-		m_openBeamBuffer = filter::makeBuffer(openBeamSubstractDarkImage);
-	}
+	void setDarkImages(const QStringList &filenames);
+	void setOpenBeam(const QStringList &filenames);
 
-	void setDarkImages(const QStringList &filenames)
-	{
-		m_darkImagePile.setFilenames(filenames);
-	}
-	void setOpenBeam(const QStringList &filenames)
-	{
-		m_openBeamPile.setFilenames(filenames);
-	}
-
-	std::shared_ptr<const filter::Buffer<ElementType, Dimensionality>> darkImageBuffer() const
-	{
-		return m_darkImageBuffer;
-	}
-	std::shared_ptr<const filter::Buffer<ElementType, Dimensionality>> openBeamBuffer() const
-	{
-		return m_openBeamBuffer;
-	}
+	std::shared_ptr<const filter::Buffer<_ElementType, _Dimensionality>> darkImageBuffer() const;
+	std::shared_ptr<const filter::Buffer<_ElementType, _Dimensionality>> openBeamBuffer() const;
 };
 
 } // namespace chains

@@ -4,9 +4,8 @@
 #include <memory>
 
 #include "filter/filter.h"
-#include "ndimfilter/fits.h"
-#include "ndimfilter/pile.h"
-#include "ndimfilter/range.h"
+#include "filter/fs/fits.h"
+#include "filter/fs/pile.h"
 
 namespace filter
 {
@@ -21,8 +20,8 @@ public:
 	static const size_t Dimensionality = _Dimensionality;
 
 private:
-	QVector<std::shared_ptr<filter::fits::Loader<ElementType, Dimensionality>>> m_fits;
-	std::shared_ptr<filter::pile<ElementType, Dimensionality>> m_pile;
+	QVector<std::shared_ptr<filter::fs::fits::Loader<ElementType, Dimensionality>>> m_fits;
+	std::shared_ptr<filter::fs::Pile<ElementType, Dimensionality>> m_pile;
 
 	ndim::range<Dimensionality> m_range;
 	bool m_isRangeSet;

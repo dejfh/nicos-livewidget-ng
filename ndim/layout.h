@@ -22,6 +22,34 @@ using Sizes = std::array<size_t, Dimensionality>;
 template <size_t Dimensionality>
 using Strides = std::array<ptrdiff_t, Dimensionality>;
 
+Indices<0> makeIndices()
+{
+	return Indices<0>();
+}
+template <typename... IndexTypes>
+Indices<sizeof...(IndexTypes)> makeIndices(IndexTypes... indices)
+{
+	return Indices<sizeof...(IndexTypes)>{size_t(indices)...};
+}
+Sizes<0> makeSizes()
+{
+	return Sizes<0>();
+}
+template <typename... SizeTypes>
+Sizes<sizeof...(SizeTypes)> makeSizes(SizeTypes... sizes)
+{
+	return Sizes<sizeof...(SizeTypes)>{size_t(sizes)...};
+}
+Strides<0> makeStrides()
+{
+	return Strides<0>();
+}
+template <typename... StrideTypes>
+Strides<sizeof...(StrideTypes)> makeStrides(StrideTypes... strides)
+{
+	return Strides<sizeof...(StrideTypes)>{ptrdiff_t(strides)...};
+}
+
 template <size_t Dimensionality>
 size_t totalCount(Sizes<Dimensionality> sizes)
 {

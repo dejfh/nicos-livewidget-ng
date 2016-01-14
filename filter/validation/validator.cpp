@@ -187,7 +187,7 @@ void Validator::prepareProc()
 		for (const std::weak_ptr<const Validatable> &weak : m_preparationValidatables) {
 			auto validatable = weak.lock();
 			if (validatable)
-				validatable->prepare(progress);
+				validatable->prepareValidation(progress);
 			m_progress.advanceStep();
 			m_progress.throwIfCancelled();
 		}

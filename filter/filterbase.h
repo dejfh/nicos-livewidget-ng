@@ -6,8 +6,10 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-#include "variadic.h"
+
+#include "helper/variadic.h"
 #include "helper/threadsafe.h"
+#include "variadic.h"
 
 #include <QVector>
 
@@ -48,15 +50,6 @@ protected:
 		m_successors.erase(std::remove_if(m_successors.begin(), m_successors.end(), invalidateOrRemove), m_successors.cend());
 	}
 
-	template <typename _ParameterType, typename _ValueType>
-	void setAndInvalidate(_ParameterType &parameter, _ValueType &&value)
-	{
-		if (parameter == value)
-			return;
-		this->invalidate();
-		parameter = std::move(value);
-	}
-
 	// Invalidatable interface
 public:
 	virtual void predecessorInvalidated(const Predecessor *) override
@@ -73,215 +66,152 @@ public:
 
 	virtual void removeSuccessor(Successor *successor) const override
 	{
-		auto removeIfMatchOrNull = [successor](const std::weak_ptr<Successor> &weak) { return weak.lock().get() == successor; };
-
-		m_successors.erase(std::remove_if(m_successors.begin(), m_successors.end(), removeIfMatchOrNull), m_successors.cend());
-	}
-};
-
-template <typename _ElementType, size_t _Dimensionality = 0>
-class NoConstDataFilter : public virtual DataFilter<_ElementType, _Dimensionality>
-{
-public:
-	using ElementType = _ElementType;
-	static const size_t Dimensionality = _Dimensionality;
-
-	// DataFilter interface
-public:
-	virtual ndim::sizes<Dimensionality> prepareConst(
-		PreparationProgress &progress, OverloadDummy<DataFilter<ElementType, Dimensionality>>) const override
-	{
-		return this->prepare(progress);
-	}
-	virtual void getConstData(ValidationProgress &progress, Container<const ElementType, Dimensionality> &result,
-		OverloadDummy<DataFilter<ElementType, Dimensionality>>) const override
-	{
-		Container<ElementType, Dimensionality> container;
-		if (result.ownsData())
-			container.reset(result.mutablePointer());
-		this->getData(progress, container);
-		if (container.pointer().data != result.pointer().data)
-			result = std::move(container);
-	}
-};
-
-template <typename _FilterType>
-class PredecessorStore
-{
-public:
-	using FilterType = const _FilterType;
-
-private:
-	hlp::Threadsafe<std::shared_ptr<FilterType>> m_predecessor;
-
-public:
-	/*!
-	 * \brief Gets the stored predecessor.
-	 * \return The stored predecessor.
-	 */
-	std::shared_ptr<FilterType> get() const
-	{
-		return m_predecessor.get();
-	}
-
-	/*!
-	 * \brief Replaces the stored predecessor by the given predecessor and (un-)registers the given successor accordingly.
-	 * \param predecessor The new predecessor
-	 * \param successor The successor to be (un-)registered.
-	 *
-	 * #### Threading
-	 * This method is called only from the \b main thread.
-	 */
-	std::shared_ptr<FilterType> reset(std::shared_ptr<FilterType> predecessor, const std::shared_ptr<Successor> &successor)
-	{
-		auto newPredecessor = predecessor.get();
-		{
-			auto guard = m_predecessor.lock();
-			guard.data().swap(predecessor);
+		auto item = std::find_if(
+			m_successors.begin(), m_successors.end(), [successor](const std::weak_ptr<Successor> &weak) { return weak.lock().get() == successor; });
+		if (item != m_successors.cend()) {
+			item->swap(m_successors.back());
+			m_successors.pop_back();
 		}
-		if (predecessor) // oldPredecessor
-			predecessor->removeSuccessor(successor.get());
-		if (newPredecessor)
-			newPredecessor->addSuccessor(successor);
-		return predecessor; // Don't use std::move, since it would prevent RVO.
-	}
-	std::shared_ptr<FilterType> clear(Successor *successor)
-	{
-		std::shared_ptr<FilterType> predecessor(nullptr);
-		{
-			auto guard = m_predecessor.lock();
-			guard.data().swap(predecessor);
-		}
-		if (predecessor) // oldPredecessor
-			predecessor->removeSuccessor(successor);
-		return predecessor; // Don't use std::move, since it would prevent RVO.
-	}
 
-	hlp::ThreadsafeGuard<std::shared_ptr<FilterType>> lock()
-	{
-		return m_predecessor.lock();
+		auto removeIfNull = [successor](const std::weak_ptr<Successor> &weak) { return weak.expired(); };
+		m_successors.erase(std::remove_if(m_successors.begin(), m_successors.end(), removeIfNull), m_successors.cend());
 	}
-	hlp::ThreadsafeGuard<const std::shared_ptr<FilterType>> lockConst() const
-	{
-		return m_predecessor.lockConst();
-	}
-};
-
-template <typename _FilterType>
-class PredecessorVectorStore
-{
-public:
-	using FilterType = const _FilterType;
-
-private:
-	hlp::Threadsafe<QVector<std::shared_ptr<FilterType>>> m_predecessors;
-
-public:
-	QVector<std::shared_ptr<FilterType>> get() const
-	{
-		return m_predecessors.get();
-	}
-
-	void reset(QVector<std::shared_ptr<FilterType>> predecessors, const std::shared_ptr<Successor> &successor)
-	{
-		QVector<std::shared_ptr<FilterType>> newPredecessors = predecessors;
-		{
-			auto guard = m_predecessors.lock();
-			guard.data().swap(predecessors);
-		}
-		for (const auto &oldPredecessor : predecessors)
-			if (oldPredecessor)
-				oldPredecessor->removeSuccessor(successor.get());
-		for (auto newPredecessor : newPredecessors)
-			if (newPredecessor)
-				newPredecessor->addSuccessor(successor);
-	}
-	void clear(Successor *successor)
-	{
-		QVector<std::shared_ptr<FilterType>> predecessors;
-		{
-			auto guard = m_predecessors.lock();
-			guard.data().swap(predecessors);
-		}
-		for (const auto &oldPredecessor : predecessors)
-			if (oldPredecessor)
-				oldPredecessor->removeSuccessor(successor);
-	}
-
-	hlp::ThreadsafeGuard<QVector<std::shared_ptr<FilterType>>> lock()
-	{
-		return m_predecessors.lock();
-	}
-	hlp::ThreadsafeGuard<const QVector<std::shared_ptr<FilterType>>> lockConst() const
-	{
-		return m_predecessors.lockConst();
-	}
-};
-
-#ifdef Q_CC_MSVC
-#pragma warning(push)
-// Disable inherits via dominance warning.
-// Bug in Visual C++, since there is only one implementation there should be no warning.
-#pragma warning(disable : 4250)
-#endif
-
-template <typename _FilterType>
-class SinglePredecessorFilterBase : public FilterBase, public virtual Successor
-{
-public:
-	using FilterType = const _FilterType;
 
 protected:
-	PredecessorStore<FilterType> m_predecessor;
-
-public:
-	~SinglePredecessorFilterBase()
+	template <typename PredecessorType>
+	void registerSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
 	{
-		m_predecessor.clear(this);
+		if (predecessor)
+			predecessor->addSuccessor(this->shared_from_this());
+	}
+	template <typename PredecessorType>
+	void unregisterSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
+	{
+		if (predecessor)
+			predecessor->removeSuccessor(this);
 	}
 
-	std::shared_ptr<FilterType> predecessor() const
+	template <typename... PredecessorTypes>
+	void registerSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
 	{
-		return m_predecessor.get();
+		std::weak_ptr<Successor> self = this->shared_from_this();
+		auto op = [&self](const std::shared_ptr<const Predecessor> &predecessor) {
+			if (predecessor)
+				predecessor->addSuccessor(self);
+		};
+		hlp::variadic::forEachInTuple(op, predecessors);
+	}
+	template <typename... PredecessorTypes>
+	void unregisterSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
+	{
+		auto op = [this](const std::shared_ptr<const Predecessor> &predecessor) {
+			if (predecessor)
+				predecessor->removeSuccessor(this);
+		};
+		hlp::variadic::forEachInTuple(op, predecessors);
 	}
 
-	void setPredecessor(std::shared_ptr<FilterType> predecessor)
+	template <typename PredecessorType>
+	void registerSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
 	{
-		this->invalidate();
-		m_predecessor.reset(predecessor, this->shared_from_this());
+		std::weak_ptr<Successor> self = this->shared_from_this();
+		for (const std::shared_ptr<PredecessorType> &predecessor : predecessors)
+			if (predecessor)
+				predecessor->addSuccessor(self);
+	}
+	template <typename PredecessorType>
+	void unregisterSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
+	{
+		for (const std::shared_ptr<PredecessorType> &predecessor : predecessors)
+			if (predecessor)
+				predecessor->removeSuccessor(this);
 	}
 };
 
-template <typename _FilterType>
-class PredecessorVectorFilterBase : public FilterBase, public virtual Successor
+template <typename... PredecessorTypes>
+class FilterHandlerBase
 {
 public:
-	using FilterType = const _FilterType;
+	using PredecessorTuple = std::tuple<std::shared_ptr<const PredecessorTypes>...>;
 
-protected:
-	PredecessorVectorStore<FilterType> m_predecessors;
+	PredecessorTuple predecessors;
 
-public:
-	~PredecessorVectorFilterBase()
+	template <size_t I = 0>
+	typename std::tuple_element<I, PredecessorTuple>::type &predecessor()
 	{
-		m_predecessors.clear(this);
+		return std::get<0>(predecessors);
 	}
-
-	QVector<std::shared_ptr<FilterType>> predecessors() const
+	template <size_t I = 0>
+	const typename std::tuple_element<I, PredecessorTuple>::type &predecessor() const
 	{
-		return m_predecessors.get();
-	}
-
-	void setPredecessors(QVector<std::shared_ptr<FilterType>> predecessors)
-	{
-		this->invalidate();
-		m_predecessors.reset(predecessors, this->shared_from_this());
+		return std::get<0>(predecessors);
 	}
 };
 
-#ifdef Q_CC_MSVC
-#pragma warning(pop)
-#endif
+template <typename _HandlerType>
+class HandlerFilterBase : public FilterBase
+{
+public:
+	using HandlerType = _HandlerType;
+
+	using PredecessorTuple = typename HandlerType::PredecessorTuple;
+
+protected:
+	hlp::Threadsafe<HandlerType> m_handler;
+
+public:
+	template <typename... Args>
+	HandlerFilterBase(Args &&... handlerArgs)
+		: m_handler(std::forward<Args>(handlerArgs)...)
+	{
+	}
+	~HandlerFilterBase()
+	{
+		this->unregisterSuccessor(m_handler.unguarded().predecessors);
+	}
+
+	PredecessorTuple predecessors() const
+	{
+		return m_handler.lockConst().data().predecessors;
+	}
+	template <size_t I = 0>
+	typename std::tuple_element<I, PredecessorTuple>::type predecessor() const
+	{
+		return m_handler.lockConst().data().predecessor<I>();
+	}
+
+	void setPredecessors(PredecessorTuple predecessors)
+	{
+		if (m_handler.unguarded().predecessors == predecessors)
+			return;
+		this->invalidate();
+		this->unregisterSuccessor(m_handler.unguarded().predecessors);
+		this->registerSuccessor(predecessors);
+		m_handler.lock().data().predecessors = predecessors;
+	}
+	template <size_t I = 0>
+	void setPredecessor(typename std::tuple_element<I, PredecessorTuple>::type predecessor)
+	{
+		if (std::get<I>(m_handler.unguarded().predecessors) == predecessor)
+			return;
+		this->invalidate();
+		this->unregisterSuccessor(std::get<I>(m_handler.unguarded().predecessors));
+		this->registerSuccessor(predecessor);
+		std::get<I>(m_handler.lock().data().predecessors) = predecessor;
+	}
+
+	HandlerType handler() const
+	{
+		return m_handler.get();
+	}
+	void setHandler(HandlerType handler)
+	{
+		this->invalidate();
+		this->unregisterSuccessor(m_handler.unguarded().predecessors);
+		this->registerSuccessor(handler.predecessors);
+		m_handler.lock().data() = handler;
+	}
+};
 
 } // namespace filter
 

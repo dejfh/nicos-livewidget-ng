@@ -18,7 +18,7 @@ void addToQVector(QVector<_ListItem> &list, _Item0 &&item0, _ItemN &&... itemN)
 }
 
 template <typename _ListItem, typename... _Items>
-QVector<_ListItem> make_QVector(_Items &&... items)
+QVector<_ListItem> makeQVector(_Items &&... items)
 {
 	QVector<_ListItem> vector;
 	vector.reserve(sizeof...(_Items));

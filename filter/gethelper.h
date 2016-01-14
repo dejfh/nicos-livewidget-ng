@@ -2,8 +2,7 @@
 #define FILTER_GETHELPER_H
 
 #include "ndim/pointer.h"
-#include "ndim/buffer.h"
-#include "filter/filter.h"
+#include "filter/datafilter.h"
 
 #include "variadic.h"
 
@@ -13,54 +12,48 @@ namespace filter
 {
 
 template <typename ElementType, size_t Dimensionality>
-Container<const ElementType, Dimensionality> getConstData(
-	ValidationProgress &progress, const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor)
-{
-	Container<const ElementType, Dimensionality> container;
-	predecessor->getConstData(progress, container);
-	return container;
-}
-
-template <typename ElementType, size_t Dimensionality>
 void getData(ValidationProgress &progress, const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor,
 	ndim::pointer<ElementType, Dimensionality> data)
 {
-	Container<ElementType, Dimensionality> container(data);
-	predecessor->getData(progress, container);
-	if (container.ownsData()) {
+	Container<ElementType, Dimensionality> container;
+	container.setMutablePointer(data);
+	container = predecessor->getData(progress, &container);
+	if (data.data != container.constData().data) {
 #pragma omp parallel
 		{
-			ndim::copy_omp(container.pointer(), data);
+			ndim::copy_omp(container.constData(), data);
 		}
 	}
 }
 
-// template <typename _FilterTypeTraits>
-// bool prepare(
-//	const DataFilter<_FilterTypeTraits> *predecessor, AsyncProgress &progress, DurationCounter &counter, typename _FilterTypeTraits::MetaType &meta)
-//{
-//	bool useConst = predecessor->supportsConst();
-//	if (useConst)
-//		predecessor->prepareConst(progress, counter, meta);
-//	else
-//		predecessor->prepare(progress, counter, meta);
-//	return useConst;
-//}
+template <typename ElementType, size_t Dimensionality>
+Container<ElementType, Dimensionality> getMutableData(ValidationProgress &progress,
+	const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor, Container<ElementType, Dimensionality> *recycle = nullptr)
+{
+	auto data = predecessor->getData(progress, recycle);
+	if (data.isMutable())
+		return data;
+	auto copy = filter::makeMutableContainer(data.layout().sizes, recycle);
+#pragma omp parallel
+	{
+		ndim::copy_omp(data, copy);
+	}
+	return copy;
+}
 
-// template <typename _FilterTypeTraits>
-// bool getData(const DataFilter<_FilterTypeTraits> *predecessor, typename _FilterTypeTraits::StoreType &buffer,
-//	typename _FilterTypeTraits::ConstType data, const typename _FilterTypeTraits::MetaType &meta, ValidationProgress &progress)
-//{
-//	bool useConst = predecessor->supportsConst();
-//	if (useConst)
-//		predecessor->getConstData(progress, data);
-//	else {
-//		_FilterTypeTraits::initStore(buffer, meta);
-//		predecessor->getData(progress, _FilterTypeTraits::getStoreCopyRef(buffer));
-//		_FilterTypeTraits::constFromStore(buffer, data);
-//	}
-//	return useConst;
-//}
+template <typename ElementType>
+void getData(ValidationProgress &progress, const std::shared_ptr<const DataFilter<ElementType>> &predecessor, ElementType &data)
+{
+	Container<ElementType> container;
+	container.setMutablePointer(ndim::make_pointer(&data, ndim::Sizes<0>()));
+	container = predecessor->getData(progress, &container);
+	if (container.constData().data != &data) {
+		if (container.isMutable())
+			data = std::move(container.mutableData().first());
+		else
+			data = container.constData().first();
+	}
+}
 
 } // namespace filter
 

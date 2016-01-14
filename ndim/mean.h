@@ -21,10 +21,10 @@ namespace ndim
 {
 
 template <size_t _D_in, size_t _D_out>
-size_t inPlaceMeanDuration(ndim::sizes<_D_in> sizes, std::array<size_t, _D_out> selectedDimensions, size_t start, size_t end)
+size_t inPlaceMeanDuration(ndim::Sizes<_D_in> sizes, ndim::Indices<_D_out> selectedDimensions, size_t start, size_t end)
 {
 	ndim::Indices<_D_in - _D_out> reducedDimensions = hlp::array::invertSelection<_D_in>(selectedDimensions);
-	ndim::sizes<_D_in - _D_out> reducedSizes = sizes.selectDimensions(reducedDimensions);
+	ndim::sizes<_D_in - _D_out> reducedSizes = hlp::array::select(sizes, reducedDimensions);
 	size_t reduceSize = reducedSizes.size();
 
 	size_t duration = 1;

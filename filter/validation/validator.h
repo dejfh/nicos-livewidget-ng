@@ -13,7 +13,7 @@
 
 #include <QtConcurrent/QtConcurrent>
 
-#include "filter/filter.h"
+#include "filter/datafilter.h"
 #include "helper/threadsafe.h"
 
 namespace filter

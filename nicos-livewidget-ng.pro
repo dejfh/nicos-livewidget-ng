@@ -17,6 +17,8 @@ unix {
 msvc {
     QMAKE_CXXFLAGS *= /openmp
     QMAKE_CXXFLAGS += -D _CRT_SECURE_NO_WARNINGS
+    QMAKE_CFLAGS = -nologo -Zm2000 -Zc:wchar_t -FS
+    QMAKE_CXXFLAGS = -nologo -Zm2000 -Zc:wchar_t -FS
 }
 gcc {
     QMAKE_CXXFLAGS *= -fopenmp
@@ -31,7 +33,8 @@ SOURCES += main.cpp\
     initdialog.cpp \
     initdialogsettings.cpp \
     tw/projectlocation.cpp \
-    tw/projectlocationsettings.cpp
+    tw/projectlocationsettings.cpp \
+    test1.cpp
 
 HEADERS  += \
     safecast.h \
@@ -50,7 +53,8 @@ HEADERS  += \
     initdialog.h \
     initdialogsettings.h \
     tw/projectlocation.h \
-    tw/projectlocationsettings.h
+    tw/projectlocationsettings.h \
+    helper/copyonwrite.h
 
 RESOURCES += \
     resources.qrc
@@ -63,7 +67,6 @@ DISTFILES += \
 
 include(ndim/NDim.pri)
 include(filter/Filter.pri)
-include(ndimfilter/NDimFilter.pri)
 include(ndimdata/NDimData.pri)
 include(ipw/ImagePlotWidget.pri)
 include(fits/FitsHelper.pri)

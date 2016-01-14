@@ -59,6 +59,33 @@ const _Type &asConst(_Type &ref)
 	return ref;
 }
 
+template <typename... UnusedTypes>
+void unused(UnusedTypes &&...)
+{
+}
+
+template <typename Out, typename In>
+typename std::enable_if<!std::is_assignable<Out &, In &&>::value, Out>::type castIfAssignable(In &&)
+{
+	return Out();
+}
+template <typename Out, typename In>
+typename std::enable_if<std::is_assignable<Out &, In &&>::value, Out>::type castIfAssignable(In &&in)
+{
+	return std::forward<In>(in);
+}
+
+template <typename Out, typename In>
+typename std::enable_if<!std::is_assignable<Out &, In &&>::value>::type assignIfAssignable(Out &, In &&)
+{
+	// Not assignable;
+}
+template <typename Out, typename In>
+typename std::enable_if<std::is_assignable<Out &, In &&>::value>::type assignIfAssignable(Out &out, In &&in)
+{
+	out = std::forward<In>(in);
+}
+
 } // namespace hlp
 
 #endif // HELPER_HELPER_H

@@ -5,6 +5,8 @@
 #include <mutex>	  // std::mutex
 #include <functional> // std::reference_wrapper
 
+#include "helper/helper.h"
+
 namespace hlp
 {
 
@@ -22,7 +24,7 @@ private:
 	std::reference_wrapper<ValueType> m_data;
 
 public:
-	ThreadsafeGuard(std::mutex &mutex, std::reference_wrapper<ValueType> data)
+	ThreadsafeGuard(std::mutex &mutex, ValueType &data)
 		: m_mutex(&mutex)
 		, m_data(data)
 	{
@@ -54,6 +56,16 @@ public:
 	{
 		return m_data;
 	}
+
+	ValueType &operator*() const
+	{
+		return m_data;
+	}
+	ValueType *operator->() const
+	{
+		ValueType& data = m_data;
+		return &data;
+	}
 };
 
 /*! \brief A threadsafe container for arbitrary data.
@@ -71,9 +83,12 @@ private:
 	ValueType m_data;
 
 public:
-	template <typename... _CtorTypes>
-	Threadsafe(_CtorTypes &&... values)
-		: m_data(std::forward<_CtorTypes>(values)...)
+	Threadsafe()
+	{
+	}
+	template <typename _CtorType0, typename... _CtorTypeN>
+	Threadsafe(_CtorType0 &&value, _CtorTypeN &&... values)
+		: m_data(std::forward<_CtorType0>(value), std::forward<_CtorTypeN>(values)...)
 	{
 	}
 
@@ -87,17 +102,22 @@ public:
 		return ThreadsafeGuard<const ValueType>(m_mutex, m_data);
 	}
 
-	ValueType take() const
+	const ValueType &unguarded() const
+	{
+		return m_data;
+	}
+
+	ValueType take()
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
-		jfh::unused_variable(guard);
+		hlp::unused(guard);
 
 		return std::move(m_data);
 	}
 	ValueType get() const
 	{
 		std::lock_guard<std::mutex> guard(m_mutex);
-		jfh::unused_variable(guard);
+		hlp::unused(guard);
 
 		return m_data;
 	}
@@ -106,7 +126,7 @@ public:
 	Threadsafe<ValueType> &operator=(_AssignType &&value)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 
 		m_data = std::forward<_AssignType>(value);
 
@@ -117,7 +137,7 @@ public:
 	bool operator==(const _CompareType &other) const
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 
 		return m_data == other;
 	}

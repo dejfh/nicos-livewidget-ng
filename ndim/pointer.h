@@ -74,12 +74,12 @@ struct pointer : ::ndim::layout<_D> {
 		return data[this->indexOf(coordinate, coordinates...)];
 	}
 
-	_T &operator[](std::array<size_t, _D> coordinates) //
+	_T &operator[](ndim::Indices<_D> coordinates) //
 	{
 		return data[this->indexOf(coordinates)];
 	}
 
-	_T value(std::array<size_t, _D> coordinates, const _T &_default = _T())
+	_T value(ndim::Indices<_D> coordinates, const _T &_default = _T())
 	{
 		if (this->sizes.contains(coordinates))
 			return this->operator[](coordinates);
@@ -120,6 +120,11 @@ struct pointer : ::ndim::layout<_D> {
 
 	template <size_t _AD>
 	pointer<_T, _D + _AD> addDimensions(Indices<_AD> dimensions, ndim::sizes<_AD> virtualSizes)
+	{
+		return pointer<_T, _D + _AD>(data, getLayout().addDimensions(dimensions, virtualSizes));
+	}
+	template <size_t _AD>
+	pointer<_T, _D + _AD> addDimensions(Indices<_AD> dimensions, Sizes<_AD> virtualSizes)
 	{
 		return pointer<_T, _D + _AD>(data, getLayout().addDimensions(dimensions, virtualSizes));
 	}
@@ -174,6 +179,18 @@ struct pointer : ::ndim::layout<_D> {
 		return ptr;
 	}
 };
+
+template <typename ElementType, size_t Dimensionality>
+pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const ndim::layout<Dimensionality> &layout)
+{
+	return pointer<ElementType, Dimensionality>(data, layout);
+}
+
+template <typename ElementType, size_t Dimensionality>
+pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const Sizes<Dimensionality> &sizes)
+{
+	return pointer<ElementType, Dimensionality>(data, sizes);
+}
 
 template <typename _T, typename... SizesTypes>
 pointer<_T, 1 + sizeof...(SizesTypes)> make_ptr_contiguous(_T *data, size_t size0, SizesTypes... sizeN)
