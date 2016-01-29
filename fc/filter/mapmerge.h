@@ -63,11 +63,11 @@ public:
 		}
 		QSet<KeyType> ambiguousKeys;
 		fc::getData(progress, predecessors.first(), resultMap);
-		for (auto iterator = predecessors.cbegin() + 1, end = predecessors.cend(); iterator != end; ++iterator) {
+		for (auto iterator = predecessors.constBegin() + 1, end = predecessors.constEnd(); iterator != end; ++iterator) {
 			const auto &predecessor = *iterator;
 			QMap<KeyType, ValueType> mergeMap;
 			fc::getData(progress, predecessor, mergeMap);
-			for (auto iterator = mergeMap.cbegin(), end = mergeMap.cend(); iterator != end; ++iterator) {
+			for (auto iterator = mergeMap.constBegin(), end = mergeMap.constEnd(); iterator != end; ++iterator) {
 				if (ambiguousKeys.contains(iterator.key()))
 					continue;
 				else if (resultMap.value(iterator.key()) == iterator.value())

@@ -91,7 +91,7 @@ public:
 		ndim::pointer<ElementType, ResultDimensionality> data = result.mutableData();
 
 		size_t index = 0;
-		for (auto it = predecessors.cbegin(), end = predecessors.cend(); it != end; ++it, ++index) {
+		for (auto it = predecessors.constBegin(), end = predecessors.constEnd(); it != end; ++it, ++index) {
 			const std::shared_ptr<const DataFilter<ElementType, PredecessorDimensionality>> &predecessor = *it;
 			hlp::notNull(predecessor);
 			fc::getData(progress, predecessor, data.removeDimension(insertDimension, index));

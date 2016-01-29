@@ -8,10 +8,19 @@ QT       += core gui opengl
 CONFIG += c++11
 CONFIG += qwt
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += widgets
+} else: unix | gcc {
+    QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic
+}
 
 unix {
-    include ( /usr/local/qwt-6.1.2/features/qwt.prf )
+    include ( /usr/local/qwt-6.1.2-qt-$$QT_VERSION/features/qwt.prf )
+}
+
+unix | gcc {
+    QMAKE_CXXFLAGS *= -fopenmp
+    QMAKE_LFLAGS *= -fopenmp
 }
 
 msvc {
@@ -19,10 +28,6 @@ msvc {
     QMAKE_CXXFLAGS += -D _CRT_SECURE_NO_WARNINGS
     QMAKE_CFLAGS = -nologo -Zm2000 -Zc:wchar_t -FS
     QMAKE_CXXFLAGS = -nologo -Zm2000 -Zc:wchar_t -FS
-}
-gcc {
-    QMAKE_CXXFLAGS *= -fopenmp
-    QMAKE_LFLAGS *= -fopenmp
 }
 
 TARGET = nicos-livewidget-ng
