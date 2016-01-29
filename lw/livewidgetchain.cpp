@@ -1,17 +1,17 @@
 #include "livewidgetchain.h"
 
-#include "filter/filter.h"
-#include "filter/validation/validator.h"
-#include "filter/validation/watcher.h"
+#include "fc/filter.h"
+#include "fc/validation/validator.h"
+#include "fc/validation/watcher.h"
 
-#include "filter/chains/darkimageopenbeam.h"
-#include "filter/chains/sourceselect.h"
-#include "filter/chains/dataprocess.h"
-#include "filter/chains/pixmapoutput.h"
-#include "filter/chains/profileplot.h"
-#include "filter/chains/zplot.h"
+#include "fc/chains/darkimageopenbeam.h"
+#include "fc/chains/sourceselect.h"
+#include "fc/chains/dataprocess.h"
+#include "fc/chains/pixmapoutput.h"
+#include "fc/chains/profileplot.h"
+#include "fc/chains/zplot.h"
 
-#include "filter/buffer.h"
+#include "fc/buffer.h"
 #include "ndimfilter/fits.h"
 
 #include "safecast.h"
@@ -22,28 +22,28 @@ namespace lw
 {
 
 struct LiveWidgetChain::LiveWidgetChainPrivate {
-	filter::validation::Validator m_validator;
+	fc::validation::Validator m_validator;
 
-	filter::chains::DarkImageAndOpenBeamChain<float, 2> m_darkImageAndOpenBeam;
-	std::shared_ptr<filter::fits::Loader<float, 2>> m_fileLoader;
-	filter::chains::SourceSelectChain<float, 2> m_sourceSelect;
-	filter::chains::DataProcessChain<float, 2> m_dataProcess;
-	filter::chains::ImageOutputChain<float> m_imageOutput;
-	filter::chains::ProfilePlotChain m_profileChain;
-	filter::chains::ZPlotChain m_zPlotChain;
+	fc::chains::DarkImageAndOpenBeamChain<float, 2> m_darkImageAndOpenBeam;
+	std::shared_ptr<fc::fits::Loader<float, 2>> m_fileLoader;
+	fc::chains::SourceSelectChain<float, 2> m_sourceSelect;
+	fc::chains::DataProcessChain<float, 2> m_dataProcess;
+	fc::chains::ImageOutputChain<float> m_imageOutput;
+	fc::chains::ProfilePlotChain m_profileChain;
+	fc::chains::ZPlotChain m_zPlotChain;
 
-	filter::validation::Watcher m_processedDataWatcher;
-	filter::validation::Watcher m_statisticWatcher;
-	filter::validation::Watcher m_pixmapWatcher;
-	filter::validation::Watcher m_profileWatcher;
-	filter::validation::Watcher m_zStackWatcher;
+	fc::validation::Watcher m_processedDataWatcher;
+	fc::validation::Watcher m_statisticWatcher;
+	fc::validation::Watcher m_pixmapWatcher;
+	fc::validation::Watcher m_profileWatcher;
+	fc::validation::Watcher m_zStackWatcher;
 
-	filter::chains::ImageOutputChain<float> m_testOutput;
-	filter::validation::Watcher m_testWatcher;
+	fc::chains::ImageOutputChain<float> m_testOutput;
+	fc::validation::Watcher m_testWatcher;
 
 	LiveWidgetChainPrivate()
 		: m_darkImageAndOpenBeam()
-		, m_fileLoader(filter::makeFitsLoader<float, 2>())
+		, m_fileLoader(fc::makeFitsLoader<float, 2>())
 		, m_sourceSelect(m_darkImageAndOpenBeam.darkImageBuffer(), m_darkImageAndOpenBeam.openBeamBuffer(), m_fileLoader)
 		, m_dataProcess(m_sourceSelect.sourceFilter())
 		, m_imageOutput(m_dataProcess.processedBuffer())

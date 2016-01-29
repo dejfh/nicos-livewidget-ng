@@ -1,7 +1,7 @@
 #ifndef LW_IMAGEFILTERBASE_H
 #define LW_IMAGEFILTERBASE_H
 
-#include "filter/filterbase.h"
+#include "fc/filterbase.h"
 
 #include "lw/imagefilter.h"
 
@@ -9,17 +9,17 @@ namespace lw
 {
 
 class ImageFilterBase : public ImageFilter,
-						public filter::SinglePredecessorFilterBase<filter::DataFilter<float, 2>>,
-						public filter::NoConstDataFilter<float, 2>
+						public fc::SinglePredecessorFilterBase<fc::DataFilter<float, 2>>,
+						public fc::NoConstDataFilter<float, 2>
 {
 	bool m_isEnabled;
 
 protected:
-	virtual prepareOverride(filter::PreparationProgress &progress, ndim::Sizes<2> sizes) const = 0;
+	virtual prepareOverride(fc::PreparationProgress &progress, ndim::Sizes<2> sizes) const = 0;
 
 	virtual bool supportsInPlace() const = 0;
 
-	virtual applyFilter(filter::ValidationProgress &progress, ndim::pointer<const float, 2> in, ndim::pointer<float, 2> out) const = 0;
+	virtual applyFilter(fc::ValidationProgress &progress, ndim::pointer<const float, 2> in, ndim::pointer<float, 2> out) const = 0;
 
 public:
 	ImageFilterBase()
@@ -29,7 +29,7 @@ public:
 
 	// DataFilter interface
 public:
-    virtual ndim::sizes<2> prepare(filter::PreparationProgress &progress) const override
+    virtual ndim::sizes<2> prepare(fc::PreparationProgress &progress) const override
 	{
 		bool enabled = m_isEnabled;
 		progress.throwIfCancelled();
@@ -42,12 +42,12 @@ public:
 		}
 	}
 	virtual void getData(
-        filter::ValidationProgress &progress, filter::Container<float, 2> *recycle) const override
+        fc::ValidationProgress &progress, fc::Container<float, 2> *recycle) const override
 	{
 		bool enabled = m_isEnabled;
 		progress.throwIfCancelled();
 		if (enabled) {
-			filter::Container<const float, 2> buffer;
+			fc::Container<const float, 2> buffer;
 			predecessor->getConstData();
 		} else {
             predecessor()->getData(progress, recycle);
@@ -56,7 +56,7 @@ public:
 
 	// DataFilter interface
 public:
-    virtual ndim::sizes<2> prepareConst(filter::PreparationProgress &progress) const override
+    virtual ndim::sizes<2> prepareConst(fc::PreparationProgress &progress) const override
 	{
 		bool enabled = m_isEnabled;
 		progress.throwIfCancelled();
@@ -66,7 +66,7 @@ public:
 		}
 	}
 	virtual void getConstData(
-        filter::ValidationProgress &progress, filter::Container<const float, 2> *recycle) const override
+        fc::ValidationProgress &progress, fc::Container<const float, 2> *recycle) const override
 	{
 		bool enabled = m_isEnabled;
 		progress.throwIfCancelled();
@@ -78,13 +78,13 @@ public:
 
 	// ImageFilter interface
 public:
-	virtual std::shared_ptr<filter::DataFilter<float, 2>> predecessor() const override
+	virtual std::shared_ptr<fc::DataFilter<float, 2>> predecessor() const override
 	{
-		return filter::SinglePredecessorFilterBase<filter::DataFilter<float, 2>>::predecessor();
+		return fc::SinglePredecessorFilterBase<fc::DataFilter<float, 2>>::predecessor();
 	}
-	virtual void setPredecessor(std::shared_ptr<const filter::DataFilter<float, 2>> predecessor) override
+	virtual void setPredecessor(std::shared_ptr<const fc::DataFilter<float, 2>> predecessor) override
 	{
-		filter::SinglePredecessorFilterBase<filter::DataFilter<float, 2>>::setPredecessor(predecessor);
+		fc::SinglePredecessorFilterBase<fc::DataFilter<float, 2>>::setPredecessor(predecessor);
 	}
 
 	virtual bool isEnabled() const override

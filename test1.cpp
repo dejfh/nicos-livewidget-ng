@@ -1,6 +1,6 @@
 #include <tuple>
 
-#include "filter/datafilterbase.h"
+#include "fc/datafilterbase.h"
 #include "ndimfilter/transform.h"
 
 template <typename Type>
@@ -16,19 +16,19 @@ void assert_rvalue(Type &&)
 
 void test1()
 {
-	using DataFilterType = const filter::DataFilter<float, 2>;
+	using DataFilterType = const fc::DataFilter<float, 2>;
 
 	using ElementOpType = std::minus<float>;
 	using ElementOpResultType = std::result_of<ElementOpType(float, float)>::type;
 	static_assert(std::is_same<ElementOpResultType, float>::value, "Wrong element type!");
 
-	using DataOpType = filter::PerElementDataOperation<ElementOpType>;
-	using DataOpResultType = std::result_of<DataOpType(filter::Container<float, 2>, filter::Container<float, 2>)>::type;
+	using DataOpType = fc::PerElementDataOperation<ElementOpType>;
+	using DataOpResultType = std::result_of<DataOpType(fc::Container<float, 2>, fc::Container<float, 2>)>::type;
 	static_assert(std::is_same<typename DataOpResultType::ElementType, float>::value, "Wrong data type!");
-	static_assert(std::is_same<DataOpResultType, filter::Container<float, 2>>::value, "Wrong data type!");
+	static_assert(std::is_same<DataOpResultType, fc::Container<float, 2>>::value, "Wrong data type!");
 
-	using FilterOpType = filter::DataFilterHandlerWithOperationBase<DataOpType, DataFilterType, DataFilterType>;
-	using FilterType = filter::HandlerDataFilterBase<FilterOpType>;
+	using FilterOpType = fc::DataFilterHandlerWithOperationBase<DataOpType, DataFilterType, DataFilterType>;
+	using FilterType = fc::HandlerDataFilterBase<FilterOpType>;
 	static_assert(FilterType::ResultDimensionality == 2, "Wrong filter dimensionality!");
 	static_assert(std::is_same<FilterType::ResultElementType, float>::value, "Wrong filter type!");
 
@@ -58,7 +58,7 @@ void test1()
 	//	hlp::unused(filterPtr);
 
 	auto ptr = std::make_shared<FilterType>();
-	std::shared_ptr<const filter::DataFilter<float, 2>> ptr2 = ptr;
+	std::shared_ptr<const fc::DataFilter<float, 2>> ptr2 = ptr;
 	hlp::unused(ptr2);
 
 	//	ElementOpType elementOp;

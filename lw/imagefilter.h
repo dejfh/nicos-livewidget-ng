@@ -5,16 +5,16 @@
 
 #include <QWidget>
 
-#include "filter/filter.h"
+#include "fc/filter.h"
 
 namespace lw
 {
 
-class ImageFilter : public filter::DataFilter<float, 2>
+class ImageFilter : public fc::DataFilter<float, 2>
 {
 public:
-	virtual std::shared_ptr<filter::DataFilter<float, 2>> predecessor() const = 0;
-	virtual void setPredecessor(std::shared_ptr<const filter::DataFilter<float, 2>> predecessor) = 0;
+	virtual std::shared_ptr<fc::DataFilter<float, 2>> predecessor() const = 0;
+	virtual void setPredecessor(std::shared_ptr<const fc::DataFilter<float, 2>> predecessor) = 0;
 
 	virtual bool isEnabled() const = 0;
 	virtual void setEnabled(bool on) = 0;

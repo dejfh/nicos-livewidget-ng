@@ -66,7 +66,7 @@ DISTFILES += \
     doxygen.dox
 
 include(ndim/NDim.pri)
-include(filter/Filter.pri)
+include(fc/FilterChain.pri)
 include(ndimdata/NDimData.pri)
 include(ipw/ImagePlotWidget.pri)
 include(fits/FitsHelper.pri)
