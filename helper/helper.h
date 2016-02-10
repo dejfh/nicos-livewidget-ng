@@ -3,8 +3,42 @@
 
 #include <memory>
 
+#include <cassert>
+
 namespace hlp
 {
+
+/// @brief Suppress compiler warnings for given unused variables.
+template <typename... UnusedTypes>
+void unused(UnusedTypes &&...)
+{
+}
+
+inline void assert_result(bool result)
+{
+	assert(result);
+	unused(result);
+}
+
+struct assert_true {
+};
+
+inline void operator<<(const assert_true &, bool value)
+{
+	assert_result(value);
+}
+inline void operator<<(assert_true &&, bool value)
+{
+	assert_result(value);
+}
+inline void operator>>(bool value, const assert_true &)
+{
+	assert_result(value);
+}
+inline void operator>>(bool value, assert_true &&)
+{
+	assert_result(value);
+}
 
 /*! \brief Throws a std::invalid_argument exception if the given pointer is null.
  *
@@ -57,11 +91,6 @@ template <typename _Type>
 const _Type &asConst(_Type &ref)
 {
 	return ref;
-}
-
-template <typename... UnusedTypes>
-void unused(UnusedTypes &&...)
-{
 }
 
 template <typename Out, typename In>

@@ -67,16 +67,6 @@ void SelectionLineItem::setLine(QLineF line)
 	updateGeometry();
 }
 
-const std::function<void(QPoint)> &SelectionLineItem::rightClickCallback() const
-{
-	return m_rightClickCallback;
-}
-
-void SelectionLineItem::setRightClickCallback(const std::function<void(QPoint)> &callback)
-{
-	m_rightClickCallback = callback;
-}
-
 void SelectionLineItem::updateGeometry()
 {
 	QLineF sceneLine(m_transform->dataToScene(m_line.p1()), m_transform->dataToScene(m_line.p2()));
@@ -101,8 +91,7 @@ void SelectionLineItem::updateGeometry()
 
 void SelectionLineItem::gripRightClick(QPoint screenPoint)
 {
-	if (m_rightClickCallback)
-		m_rightClickCallback(screenPoint);
+	emit rightClicked(m_line, screenPoint);
 }
 
 void SelectionLineItem::gripDragStart(QPointF)

@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QFileInfo>
+#include <QLineEdit>
 
 #include <QApplication>
 
@@ -58,7 +59,7 @@ QString getComboItem(QComboBox &control)
 	if (index < 0 || text != control.itemText(index))
 		return text;
 	else {
-		QString data = control.currentData().toString();
+		QString data = control.itemData(index).toString();
 		return data.isEmpty() ? text : data;
 	}
 }
@@ -67,16 +68,16 @@ void showDirSearchDialog(QComboBox &control)
 {
 	QString dirName = QFileDialog::getExistingDirectory(0, QString(), QDir(getComboItem(control)).absoluteFilePath(".."));
 	if (!dirName.isEmpty())
-		control.setCurrentText(QDir::toNativeSeparators(dirName));
+		control.lineEdit()->setText(QDir::toNativeSeparators(dirName));
 }
 
-void showFileSearchDialog(QComboBox &control, const QString &fileExtension)
-{
-	QFileInfo fileInfo(getComboItem(control));
-	QString fileName = QFileDialog::getSaveFileName(0, QString(), fileInfo.dir().absolutePath(), fileExtension);
-	if (!fileName.isEmpty())
-		control.setCurrentText(QDir::toNativeSeparators(fileName));
-}
+//void showFileSearchDialog(QComboBox &control, const QString &fileExtension)
+//{
+//	QFileInfo fileInfo(getComboItem(control));
+//	QString fileName = QFileDialog::getSaveFileName(0, QString(), fileInfo.dir().absolutePath(), fileExtension);
+//	if (!fileName.isEmpty())
+//		control.setCurrentText(QDir::toNativeSeparators(fileName));
+//}
 
 void InitDialog::on_buttonDataPath_clicked()
 {

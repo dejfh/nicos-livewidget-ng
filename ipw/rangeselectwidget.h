@@ -4,10 +4,10 @@
 #include <QWidget>
 #include <QSharedPointer>
 
-#include <qwt_plot_histogram.h>
-#include <qwt_plot_zoneitem.h>
+#include <qwt/qwt_plot_histogram.h>
+#include <qwt/qwt_plot_zoneitem.h>
 
-#include <qwt_plot_picker.h>
+#include <qwt/qwt_plot_picker.h>
 
 #include "ndimdata/statistic.h"
 

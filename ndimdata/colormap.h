@@ -3,7 +3,6 @@
 
 #include <QRgb>
 #include <cmath>
-#include <qwt_color_map.h>
 
 namespace ndimdata {
 
@@ -102,31 +101,31 @@ struct ColorMapCyclic : ColorMapColor {
 	}
 };
 
-template <typename _T_colorMap>
-class ColorMapWrapper : public QwtColorMap
-{
-	bool invert;
+//template <typename _T_colorMap>
+//class ColorMapWrapper : public QwtColorMap
+//{
+//	bool invert;
 
-public:
-	ColorMapWrapper(bool invert = false)
-		: invert(invert)
-	{
-	}
-	virtual ~ColorMapWrapper() {}
+//public:
+//	ColorMapWrapper(bool invert = false)
+//		: invert(invert)
+//	{
+//	}
+//	virtual ~ColorMapWrapper() {}
 
-	virtual QRgb rgb(const QwtInterval &interval, double value) const
-	{
-		if (!invert) {
-			_T_colorMap colorMap(interval.minValue(), interval.maxValue());
-			return colorMap(value);
-		} else {
-			_T_colorMap colorMap(interval.maxValue(), interval.minValue());
-			return colorMap(value);
-		}
-	}
+//	virtual QRgb rgb(const QwtInterval &interval, double value) const
+//	{
+//		if (!invert) {
+//			_T_colorMap colorMap(interval.minValue(), interval.maxValue());
+//			return colorMap(value);
+//		} else {
+//			_T_colorMap colorMap(interval.maxValue(), interval.minValue());
+//			return colorMap(value);
+//		}
+//	}
 
-	virtual unsigned char colorIndex(const QwtInterval &, double) const { return 0; }
-};
+//	virtual unsigned char colorIndex(const QwtInterval &, double) const { return 0; }
+//};
 
 } // namespace ndimdata
 

@@ -1,4 +1,7 @@
- 
+include(../openmp.prf)
+
+include(../fits/FitsHelper.pri)
+include(../ndimdata/NDimData.pri)
 
 HEADERS += \
     $$PWD/filter.h \
@@ -30,15 +33,16 @@ HEADERS += \
     $$PWD/filter/pixmap.h \
     $$PWD/filter/valuerange.h \
     $$PWD/filter/mapmerge.h \
-    $$PWD/filter/input.h
+    $$PWD/filter/input.h \
+    $$PWD/validation/qtvalidator.h \
+    $$PWD/validation/qtwatcher.h
 
 SOURCES += \
     $$PWD/validation/validator.cpp \
     $$PWD/validation/watcher.cpp \
     $$PWD/chains/darkimageopenbeam.cpp \
-    $$PWD/test/filterheader.cpp \
-    $$PWD/test/filterinstance.cpp \
-    $$PWD/test/filterinstanceauto.cpp
+    $$PWD/validation/qtvalidator.cpp \
+    $$PWD/validation/qtwatcher.cpp
 
 DISTFILES += \
     $$PWD/filter.dox

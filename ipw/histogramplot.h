@@ -1,10 +1,11 @@
 #ifndef HPW_HISTOGRAMPLOT_H
 #define HPW_HISTOGRAMPLOT_H
 
-#include <qwt_plot.h>
 #include <QWidget>
-#include <qwt_series_data.h>
-#include <qwt_samples.h>
+
+#include <qwt/qwt_plot.h>
+#include <qwt/qwt_series_data.h>
+#include <qwt/qwt_samples.h>
 
 namespace ipw
 {
@@ -19,7 +20,7 @@ public:
     {
         typedef QVector<QwtIntervalSample>::const_iterator const_iterator;
         double top = 0.f;
-        for (const_iterator it = samples.cbegin(); it != samples.cend(); ++it)
+	  for (const_iterator it = samples.constBegin(); it != samples.constEnd(); ++it)
             top = std::max(top, it->value);
         double left = samples.first().interval.minValue();
         double right = samples.last().interval.maxValue();

@@ -73,16 +73,6 @@ void SelectionRectItem::setRect(QRectF rect)
 	updateGeometry();
 }
 
-const std::function<void(QPoint)> &SelectionRectItem::rightClickCallback() const
-{
-	return m_rightClickCallback;
-}
-
-void SelectionRectItem::setRightClickCallback(const std::function<void(QPoint)> &callback)
-{
-	m_rightClickCallback = callback;
-}
-
 void SelectionRectItem::updateGeometry()
 {
 	QRectF sceneRect = m_transform->dataToScene(m_rect);
@@ -128,8 +118,7 @@ void SelectionRectItem::updateGeometry()
 
 void SelectionRectItem::gripRightClick(QPoint screenPoint)
 {
-	if (m_rightClickCallback)
-		m_rightClickCallback(screenPoint);
+	emit rightClicked(m_rect, screenPoint);
 }
 
 void SelectionRectItem::gripDragStart(QPointF)

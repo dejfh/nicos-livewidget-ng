@@ -1,3 +1,5 @@
+CONFIG += qwt
+
 HEADERS += \
     $$PWD/geometryhelper.h \
     $$PWD/fixedratiotransform.h \
@@ -36,5 +38,4 @@ win32 {
 }
 unix {
     LIBS *= -lqwt
-    INCLUDEPATH +=
 }

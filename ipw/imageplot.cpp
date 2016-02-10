@@ -17,9 +17,9 @@
 #include "ipw/selectionrectitem.h"
 #include "ipw/selectionlineitem.h"
 
-#include "safecast.h"
+#include "helper/helper.h"
 
-using jfh::assert_result;
+#include "safecast.h"
 
 namespace ipw
 {
@@ -66,13 +66,15 @@ ImagePlot::ImagePlot(QWidget *parent)
 	ui->view->setRenderHint(QPainter::Antialiasing);
 	ui->view->setScene(m_scene);
 
-	assert_result(connect(m_trackerItem, SIGNAL(rightClick(QPointF)), this, SLOT(autoScale())));
-	assert_result(connect(m_trackerItem, SIGNAL(selectionComplete(QRectF)), this, SLOT(makeSelection(QRectF))));
-	assert_result(connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updatePixmapGeometry())));
-	assert_result(connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updateScales())));
-	assert_result(connect(this, SIGNAL(resized()), this, SLOT(updateScales()), Qt::QueuedConnection));
-	assert_result(connect(m_selectionRectItem, SIGNAL(selectionChanged(QRectF)), this, SLOT(selectionItemChanged(QRectF))));
-	assert_result(connect(m_selectionLineItem, SIGNAL(selectionChanged(QLineF)), this, SLOT(selectionItemChanged(QLineF))));
+	hlp::assert_true() << connect(m_trackerItem, SIGNAL(rightClick(QPointF)), this, SLOT(autoScale()));
+	hlp::assert_true() << connect(m_trackerItem, SIGNAL(selectionComplete(QRectF)), this, SLOT(makeSelection(QRectF)));
+	hlp::assert_true() << connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updatePixmapGeometry()));
+	hlp::assert_true() << connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updateScales()));
+	hlp::assert_true() << connect(this, SIGNAL(resized()), this, SLOT(updateScales()), Qt::QueuedConnection);
+	hlp::assert_true() << connect(m_selectionRectItem, SIGNAL(selectionChanged(QRectF)), this, SLOT(selectionItemChanged(QRectF)));
+	hlp::assert_true() << connect(m_selectionRectItem, SIGNAL(rightClicked(QRectF, QPoint)), this, SLOT(selectionItemRightClicked(QRectF, QPoint)));
+	hlp::assert_true() << connect(m_selectionLineItem, SIGNAL(selectionChanged(QLineF)), this, SLOT(selectionItemChanged(QLineF)));
+	hlp::assert_true() << connect(m_selectionLineItem, SIGNAL(rightClicked(QLineF, QPoint)), this, SLOT(selectionItemRightClicked(QLineF, QPoint)));
 
 	ui->view->installEventFilter(this);
 }
@@ -214,26 +216,6 @@ void ImagePlot::resetSelection()
 	m_selectionLineItem->setVisible(false);
 }
 
-const std::function<void(QPoint)> &ImagePlot::rightClickLineCallback() const
-{
-	return m_selectionLineItem->rightClickCallback();
-}
-
-void ImagePlot::setRightClickLineCallback(const std::function<void(QPoint)> &callback)
-{
-	m_selectionLineItem->setRightClickCallback(callback);
-}
-
-const std::function<void(QPoint)> &ImagePlot::rightClickRectCallback() const
-{
-	return m_selectionRectItem->rightClickCallback();
-}
-
-void ImagePlot::setRightClickRectCallback(const std::function<void(QPoint)> &callback)
-{
-	m_selectionRectItem->setRightClickCallback(callback);
-}
-
 QGraphicsView *ImagePlot::graphicsView() const
 {
 	return ui->view;
@@ -307,6 +289,16 @@ void ImagePlot::selectionItemChanged(QRectF selection)
 void ImagePlot::selectionItemChanged(QLineF selection)
 {
 	emit selectionChanged(selection);
+}
+
+void ImagePlot::selectionItemRightClicked(QRectF selection, QPoint point)
+{
+	emit selectionRightClicked(selection, point);
+}
+
+void ImagePlot::selectionItemRightClicked(QLineF selection, QPoint point)
+{
+	emit selectionRightClicked(selection, point);
 }
 
 QString ImagePlot::hoverText(QPointF dataPoint)

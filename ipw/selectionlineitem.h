@@ -28,11 +28,9 @@ public:
 	QLineF line() const;
 	void setLine(QLineF line);
 
-	const std::function<void(QPoint)> &rightClickCallback() const;
-	void setRightClickCallback(const std::function<void(QPoint)> &callback);
-
 signals:
 	void selectionChanged(QLineF line);
+	void rightClicked(QLineF selection, QPoint point);
 
 private slots:
 	void updateGeometry();
@@ -45,8 +43,6 @@ private:
 	enum Grips { StartGrip = 0, EndGrip = 1, MidGrip = 2, GripCount = 3, NoGrip = -1 };
 
 	QLineF m_line;
-
-	std::function<void(QPoint)> m_rightClickCallback;
 
 	Plot2DTransform *m_transform;
 	QGraphicsLineItem *m_lineItemBack;

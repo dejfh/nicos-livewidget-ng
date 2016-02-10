@@ -1,4 +1,3 @@
-
 #include <type_traits>
 #include <QVector>
 
@@ -21,7 +20,7 @@
 #include "helper/qt/vector.h"
 #include "ndimdata/colormap.h"
 
-void test3()
+void test1()
 {
 	std::shared_ptr<const fc::DataFilter<float, 2>> fits = fc::filter::makeFitsLoader<float, 2>();
 	std::shared_ptr<const fc::DataFilter<float, 2>> input = fc::filter::makeInput<float, 2>();

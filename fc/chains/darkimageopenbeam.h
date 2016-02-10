@@ -5,8 +5,8 @@
 
 #include "fc/filter.h"
 
-#include "fc/buffer.h"
-#include "ndimfilter/transform.h"
+#include "fc/filter/buffer.h"
+#include "fc/filter/perelement.h"
 
 #include "fc/chains/fitspile.h"
 
@@ -28,8 +28,8 @@ private:
 	FitsPileChain<ElementType, Dimensionality> m_darkImagePile;
 	FitsPileChain<ElementType, Dimensionality> m_openBeamPile;
 
-	std::shared_ptr<fc::Buffer<ElementType, Dimensionality>> m_darkImageBuffer;
-	std::shared_ptr<fc::Buffer<ElementType, Dimensionality>> m_openBeamBuffer;
+	std::shared_ptr<fc::filter::Buffer<ElementType, Dimensionality>> m_darkImageBuffer;
+	std::shared_ptr<fc::filter::Buffer<ElementType, Dimensionality>> m_openBeamBuffer;
 
 public:
 	DarkImageAndOpenBeamChain();
@@ -37,8 +37,8 @@ public:
 	void setDarkImages(const QStringList &filenames);
 	void setOpenBeam(const QStringList &filenames);
 
-	std::shared_ptr<const fc::Buffer<_ElementType, _Dimensionality>> darkImageBuffer() const;
-	std::shared_ptr<const fc::Buffer<_ElementType, _Dimensionality>> openBeamBuffer() const;
+	std::shared_ptr<const fc::filter::Buffer<ElementType, Dimensionality>> darkImageBuffer() const;
+	std::shared_ptr<const fc::filter::Buffer<ElementType, Dimensionality>> openBeamBuffer() const;
 };
 
 } // namespace chains

@@ -30,6 +30,20 @@ public:
 		ValidationProgress &progress, Container<_ElementType, _Dimensionality> *recycle = nullptr) const = 0;
 };
 
+template <typename _ElementType, size_t _Dimensionality = 0>
+class SkipableDataFilter : public virtual DataFilter<_ElementType, _Dimensionality>
+{
+public:
+	using ElementType = _ElementType;
+	static const size_t Dimensionality = _Dimensionality;
+
+	virtual std::shared_ptr<const DataFilter<ElementType, Dimensionality>> predecessor() const = 0;
+	virtual void setPredecessor(std::shared_ptr<const DataFilter<ElementType, Dimensionality>> predecessor) = 0;
+
+	virtual void setEnabled(bool enable) = 0;
+	virtual bool isEnabled() const = 0;
+};
+
 template <typename ElementType, size_t Dimensionality>
 DataFilter<ElementType, Dimensionality> &asDataFilter(DataFilter<ElementType, Dimensionality> &filter)
 {

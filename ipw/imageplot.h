@@ -63,12 +63,6 @@ public:
 	void setSelection(QPointF start, QSizeF size);
 	void resetSelection();
 
-	const std::function<void(QPoint)> &rightClickLineCallback() const;
-	void setRightClickLineCallback(const std::function<void(QPoint)> &callback);
-
-	const std::function<void(QPoint)> &rightClickRectCallback() const;
-	void setRightClickRectCallback(const std::function<void(QPoint)> &callback);
-
 	QGraphicsView *graphicsView() const;
 
 public slots:
@@ -80,6 +74,8 @@ signals:
 	void resized();
 	void selectionChanged(QRectF selection);
 	void selectionChanged(QLineF selection);
+	void selectionRightClicked(QRectF selection, QPoint point);
+	void selectionRightClicked(QLineF selection, QPoint point);
 
 protected:
 	virtual bool eventFilter(QObject *object, QEvent *event);
@@ -90,6 +86,8 @@ private slots:
 	void makeSelection(QRectF selection);
 	void selectionItemChanged(QRectF selection);
 	void selectionItemChanged(QLineF selection);
+	void selectionItemRightClicked(QRectF selection, QPoint point);
+	void selectionItemRightClicked(QLineF selection, QPoint point);
 
 private:
 	QString hoverText(QPointF dataPoint);

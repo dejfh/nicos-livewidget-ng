@@ -1,6 +1,6 @@
 #include "ipw/histogramplot.h"
 
-#include <qwt_scale_engine.h>
+#include <qwt/qwt_scale_engine.h>
 
 namespace ipw
 {

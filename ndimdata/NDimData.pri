@@ -1,7 +1,7 @@
 HEADERS += \
     $$PWD/statistic.h \
     $$PWD/analyzer.h \
-    ndimdata/colormap.h
+    $$PWD/colormap.h
 
 SOURCES += \
-    ndimdata/analyzer.cpp
+    $$PWD/analyzer.cpp

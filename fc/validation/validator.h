@@ -6,15 +6,15 @@
 #include <memory>
 #include <vector>
 #include <deque>
-
-#include <QFuture>
-#include <QFutureWatcher>
-#include <QList>
-
-#include <QtConcurrent/QtConcurrent>
+#include <thread>
+#include <string>
+#include <future>
+#include <functional>
 
 #include "fc/datafilter.h"
 #include "helper/threadsafe.h"
+#include "helper/copyonwrite.h"
+#include "helper/dispatcher.h"
 
 namespace fc
 {
@@ -22,19 +22,18 @@ namespace fc
 namespace validation
 {
 
-class Validator : public QObject, private Successor
+class Validator : private Successor
 {
-	Q_OBJECT
-
 	std::shared_ptr<int> m_dummy_ptr;
 
 	std::vector<std::weak_ptr<const Validatable>> m_validatables; //!< List of Validatables to be validated by this \ref Validator
 
 	std::vector<std::weak_ptr<const Validatable>> m_preparationValidatables;
 	std::deque<std::shared_ptr<const Validatable>> m_queue; //!< Current queue of validatables
-	QStringList m_validationSteps;							//!< Descriptions of current validation steps. Valid if m_isQueueValid is true.
-	size_t m_validationDuration;							//!< Duration of the current validation queue. Valid if m_isQueueValid is true.
-	ValidationProgress m_progress;							//!< Progress of the current validation.
+	std::vector<std::wstring> m_validationSteps;
+	//	QStringList m_validationSteps;							//!< Descriptions of current validation steps. Valid if m_isQueueValid is true.
+	size_t m_validationDuration;   //!< Duration of the current validation queue. Valid if m_isQueueValid is true.
+	ValidationProgress m_progress; //!< Progress of the current validation.
 
 	std::shared_ptr<const Validatable> m_activeValidatable; //!< Currently active validatable. Set by main thread.
 
@@ -44,14 +43,16 @@ class Validator : public QObject, private Successor
 	bool m_enabled;					  //!< True, if the validator should automatically validate. Accessed only by main thread.
 	bool m_hadException;
 
-	QFuture<void> m_future;
-	QFutureWatcher<void> m_watcher;
+	std::unique_ptr<hlp::Dispatcher> m_dispatcher;
 
-signals:
-	void validationStarted();
-	void validationStep();
-	void validationCompleted();
-	void invalidated();
+	std::future<void> m_future;
+
+protected:
+	virtual void invokeFinished() = 0;
+	virtual void onValidationStarted();
+	virtual void onValidationStep();
+	virtual void onValidationComplete();
+	virtual void onInvalidated();
 
 public:
 	Validator();
@@ -59,7 +60,7 @@ public:
 
 	bool isWorking();
 
-public slots:
+public:
 	void start();
 	void abort(bool wait);
 
@@ -69,10 +70,12 @@ public:
 	void remove(const Validatable *validatable);
 
 	void state(size_t &progress, size_t &duration, size_t &step, size_t &stepCount, QString &description);
-	QStringList descriptions() const;
+	const std::vector<std::wstring> &descriptions() const;
 
-private slots:
+protected:
 	void finished();
+
+private:
 	void validate();
 
 private:

@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-#include "fc/validation/validator.h"
+#include "fc/validation/qtvalidator.h"
 #include "fc/filter.h"
 
 namespace fc
@@ -23,7 +23,7 @@ class Watcher : public QObject
 	std::function<void(void)> m_updater;
 
 public:
-	explicit Watcher(Validator *validator, std::shared_ptr<const fc::Validatable> validatable,
+	explicit Watcher(QtValidator *validator, std::shared_ptr<const fc::Validatable> validatable,
 		const std::function<void(void)> &updater = std::function<void(void)>(), QObject *parent = 0);
 
 	void setUpdater(std::function<void(void)> updater);

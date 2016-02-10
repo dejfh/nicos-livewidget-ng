@@ -1,3 +1,5 @@
+include(../cfitsio.prf)
+
 HEADERS += \
     $$PWD/fitsloader.h \
     $$PWD/fitsloadersettings.h
@@ -5,8 +7,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/fitsloader.cpp \
     $$PWD/fitsloadersettings.cpp
-
-CONFIG *= cfitsio
 
 DISTFILES += \
     $$PWD/fitshelper.dox

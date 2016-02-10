@@ -1,8 +1,8 @@
 #include "fc/validation/watcher.h"
 
-#include "safecast.h"
+#include "helper/helper.h"
 
-using jfh::assert_result;
+using hlp::assert_true;
 
 namespace fc
 {
@@ -11,14 +11,14 @@ namespace validation
 {
 
 Watcher::Watcher(
-	Validator *validator, std::shared_ptr<const fc::Validatable> validatable, const std::function<void(void)> &updater, QObject *parent)
+	QtValidator *validator, std::shared_ptr<const fc::Validatable> validatable, const std::function<void(void)> &updater, QObject *parent)
 	: QObject(parent)
 	, m_validatable(validatable)
 	, m_isUpToDate(false)
 	, m_updater(updater)
 {
-	assert_result(connect(validator, SIGNAL(validationStep()), this, SLOT(validated())));
-	assert_result(connect(validator, SIGNAL(invalidated()), this, SLOT(invalidated())));
+	assert_true() << connect(validator, SIGNAL(validationStep()), this, SLOT(validated()));
+	assert_true() << connect(validator, SIGNAL(invalidated()), this, SLOT(invalidated()));
 }
 
 void Watcher::setUpdater(std::function<void()> updater)

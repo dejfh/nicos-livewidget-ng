@@ -54,7 +54,7 @@
   <customwidget>
    <class>QwtScaleWidget</class>
    <extends>QWidget</extends>
-   <header>qwt_scale_widget.h</header>
+   <header>qwt/qwt_scale_widget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

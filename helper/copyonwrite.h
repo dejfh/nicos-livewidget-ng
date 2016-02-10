@@ -23,8 +23,8 @@ public:
 	CopyOnWrite(const CopyOnWrite<ValueType> &other) = default;
 	CopyOnWrite(CopyOnWrite<ValueType> &&other) = default;
 
-	CopyOnWrite<ValueType> &operator=()(const CopyOnWrite<ValueType> &other) = default;
-	CopyOnWrite<ValueType> &operator=()(CopyOnWrite<ValueType> &&other) = default;
+	CopyOnWrite<ValueType> &operator=(const CopyOnWrite<ValueType> &other) = default;
+	CopyOnWrite<ValueType> &operator=(CopyOnWrite<ValueType> &&other) = default;
 
 	template <typename... Args>
 	void emplace(Args &&... args)
@@ -35,7 +35,7 @@ public:
 			m_data = std::make_shared<ValueType>(std::forward<Args>(args)...);
 	}
 
-	CopyOnWrite<ValueType> &operator=()(const ValueType &value)
+	CopyOnWrite<ValueType> &operator=(const ValueType &value)
 	{
 		if (m_data && m_data.unique())
 			*m_data = value;
@@ -43,7 +43,7 @@ public:
 			emplace(value);
 	}
 
-	CopyOnWrite<ValueType> &operator=()(ValueType &&value)
+	CopyOnWrite<ValueType> &operator=(ValueType &&value)
 	{
 		if (m_data && m_data.unique())
 			*m_data = std::move(value);

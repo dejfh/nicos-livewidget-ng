@@ -119,7 +119,8 @@ public:
 #endif
 
 template <typename PredecessorType>
-std::shared_ptr<Buffer<ElementTypeOf_t<PredecessorType>, DimensionalityOf_t<PredecessorType>::value>> makeBuffer(std::shared_ptr<PredecessorType> predecessor)
+std::shared_ptr<Buffer<ElementTypeOf_t<PredecessorType>, DimensionalityOf_t<PredecessorType>::value>> makeBuffer(
+	std::shared_ptr<PredecessorType> predecessor)
 {
 	auto filter = std::make_shared<Buffer<ElementTypeOf_t<PredecessorType>, DimensionalityOf_t<PredecessorType>::value>>();
 	filter->setPredecessor(std::move(predecessor));

@@ -22,7 +22,7 @@ using Sizes = std::array<size_t, Dimensionality>;
 template <size_t Dimensionality>
 using Strides = std::array<ptrdiff_t, Dimensionality>;
 
-Indices<0> makeIndices()
+inline Indices<0> makeIndices()
 {
 	return Indices<0>();
 }
@@ -31,7 +31,7 @@ Indices<sizeof...(IndexTypes)> makeIndices(IndexTypes... indices)
 {
 	return Indices<sizeof...(IndexTypes)>{size_t(indices)...};
 }
-Sizes<0> makeSizes()
+inline Sizes<0> makeSizes()
 {
 	return Sizes<0>();
 }
@@ -40,7 +40,7 @@ Sizes<sizeof...(SizeTypes)> makeSizes(SizeTypes... sizes)
 {
 	return Sizes<sizeof...(SizeTypes)>{size_t(sizes)...};
 }
-Strides<0> makeStrides()
+inline Strides<0> makeStrides()
 {
 	return Strides<0>();
 }

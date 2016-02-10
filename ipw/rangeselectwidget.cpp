@@ -4,15 +4,13 @@
 #include <cstddef>
 #include <limits>
 
+#include <QMouseEvent>
 #include <QVector>
 
-#include <qwt_scale_widget.h>
+#include <qwt/qwt_scale_widget.h>
+#include <qwt/qwt_picker_machine.h>
 
-#include <qwt_picker_machine.h>
-
-#include <QMouseEvent>
-
-#include <cassert>
+#include "helper/helper.h"
 
 namespace ipw
 {
@@ -198,7 +196,7 @@ void RangeSelectWidget::valuesUpdated()
 
 void RangeSelectWidget::updateControls()
 {
-	assert(!m_statistic.isNull());
+	hlp::assert_true() << !m_statistic.isNull();
 	const ndimdata::DataStatistic &statistic(*m_statistic.data());
 	m_updating = true;
 	ui->spinMinMax1->setValue(m_bound1);

@@ -12,10 +12,11 @@ namespace fc
 namespace validation
 {
 
-class ValidatorPreparationProgress : public PreparationProgress {
+class ValidatorPreparationProgress : public PreparationProgress
+{
 public:
 	std::deque<std::shared_ptr<const Validatable>> queue;
-	QStringList steps;
+	std::vector<std::wstring> steps;
 	size_t duration;
 
 	ValidatorPreparationProgress()
@@ -37,10 +38,26 @@ public:
 
 	virtual void addStep(size_t flops, const QString &description) override
 	{
-		steps.append(description);
+		steps.push_back(description.toStdWString());
 		duration += flops;
 	}
 };
+
+void Validator::onValidationStarted()
+{
+}
+
+void Validator::onValidationStep()
+{
+}
+
+void Validator::onValidationComplete()
+{
+}
+
+void Validator::onInvalidated()
+{
+}
 
 Validator::Validator()
 	: m_activeValidatable(0)
@@ -51,9 +68,9 @@ Validator::Validator()
 	, m_hadException(false)
 {
 	m_dummy_ptr = std::make_shared<int>();
-	assert_result(connect(&m_watcher, SIGNAL(finished()), this, SLOT(finished())));
-	assert_result(connect(this, SIGNAL(invalidated()), this, SLOT(validate()), Qt::QueuedConnection));
-	m_watcher.setFuture(m_future);
+	//	assert_result(connect(&m_watcher, SIGNAL(finished()), this, SLOT(finished())));
+	//	assert_result(connect(this, SIGNAL(invalidated()), this, SLOT(validate()), Qt::QueuedConnection));
+	//	m_watcher.setFuture(m_future);
 }
 
 Validator::~Validator()
@@ -89,13 +106,13 @@ void Validator::restart(bool wait)
 	m_rebuildQueue = true;
 	m_isQueueValid = false;
 	if (wait && m_isWorking) {
-		m_future.waitForFinished();
+		m_future.wait();
 		bool wasEnabled = m_enabled;
 		m_enabled = false;
 		this->finished();
 		m_enabled = wasEnabled;
 	}
-	emit invalidated();
+	onInvalidated();
 }
 
 void Validator::add(std::shared_ptr<const Validatable> validatable)
@@ -104,7 +121,7 @@ void Validator::add(std::shared_ptr<const Validatable> validatable)
 	m_rebuildQueue = true;
 	std::shared_ptr<Successor> successor(m_dummy_ptr, this);
 	validatable->addSuccessor(successor);
-	emit invalidated();
+	onInvalidated();
 }
 
 void Validator::remove(const Validatable *validatable)
@@ -135,7 +152,7 @@ void Validator::state(size_t &progress, size_t &duration, size_t &step, size_t &
 		step = m_progress.currentStep();
 		stepCount = m_validationSteps.size();
 		if (step < stepCount)
-			description = m_validationSteps[int(step)];
+			description = QString::fromStdWString(m_validationSteps[step]);
 		else
 			description = QString("finishing...");
 	}
@@ -143,10 +160,10 @@ void Validator::state(size_t &progress, size_t &duration, size_t &step, size_t &
 		description = QString("ERROR while ").append(description);
 }
 
-QStringList Validator::descriptions() const
+const std::vector<std::wstring> &Validator::descriptions() const
 {
-	if (!m_isQueueValid.load(std::memory_order_acquire))
-		return QStringList();
+	//	if (!m_isQueueValid.load(std::memory_order_acquire))
+	//		return QStringList();
 	return m_validationSteps;
 }
 
@@ -155,30 +172,24 @@ void Validator::validate()
 	if (!m_enabled || m_isWorking || m_hadException)
 		return;
 	if (m_rebuildQueue || !m_isQueueValid.load(std::memory_order_acquire)) {
-		emit validationStarted();
+		onValidationStarted();
 		m_rebuildQueue = false;
 		m_activeValidatable = 0;
 		m_progress.reset();
 		m_isWorking = true;
 		m_preparationValidatables.clear();
 		std::copy(m_validatables.cbegin(), m_validatables.cend(), std::back_inserter(m_preparationValidatables));
-		m_future = QtConcurrent::run(this, &Validator::prepareProc);
-		m_watcher.setFuture(m_future);
-		if (m_future.isFinished())
-			finished();
+		m_future = std::async(std::launch::async, [this]() { this->prepareProc(); });
 		return;
 	}
 	if (!m_queue.empty()) {
 		m_activeValidatable = std::move(m_queue.front());
 		m_queue.pop_front();
 		m_isWorking = true;
-		m_future = QtConcurrent::run(this, &Validator::validationProc);
-		m_watcher.setFuture(m_future);
-		if (m_future.isFinished())
-			finished();
+		m_future = std::async(std::launch::async, [this]() { this->validationProc(); });
 		return;
 	}
-	emit validationCompleted();
+	onValidationComplete();
 }
 void Validator::prepareProc()
 {
@@ -205,6 +216,7 @@ void Validator::prepareProc()
 		qWarning() << "Catch in filter::validation::Validator::prepareProc()";
 	}
 	m_progress.reset();
+	this->invokeFinished();
 }
 
 void Validator::validationProc()
@@ -223,15 +235,19 @@ void Validator::validationProc()
 		m_hadException = true;
 		qWarning() << "Catch in filter::validation::Validator::validationProc()";
 	}
+	this->invokeFinished();
 }
 
 void Validator::finished()
 {
 	if (!m_isWorking)
 		return;
+	if (m_future.wait_for(std::chrono::seconds::zero()) != std::future_status::ready)
+		return;
+	m_future.get();
 	m_activeValidatable = nullptr;
 	m_isWorking = false;
-	emit validationStep();
+	onValidationStep();
 	validate();
 }
 
@@ -242,7 +258,7 @@ void Validator::predecessorInvalidated(const Predecessor *predecessor)
 	else
 		m_rebuildQueue = true;
 	m_hadException = false;
-	emit invalidated();
+	onInvalidated();
 }
 
 } // namespace validation

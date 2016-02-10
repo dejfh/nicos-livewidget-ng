@@ -28,11 +28,9 @@ public:
 	QRectF rect() const;
 	void setRect(QRectF rect);
 
-	const std::function<void(QPoint)> &rightClickCallback() const;
-	void setRightClickCallback(const std::function<void(QPoint)> &callback);
-
 signals:
-	void selectionChanged(QRectF line);
+	void selectionChanged(QRectF selection);
+	void rightClicked(QRectF selection, QPoint point);
 
 private slots:
 	void updateGeometry();
@@ -57,8 +55,6 @@ private:
 	};
 
 	QRectF m_rect;
-
-	std::function<void(QPoint)> m_rightClickCallback;
 
 	Plot2DTransform *m_transform;
 	QGraphicsRectItem *m_rectItemBack;

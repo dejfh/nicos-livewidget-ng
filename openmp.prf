@@ -1,0 +1,10 @@
+#
+# OpenMP support.
+#
+
+msvc {
+    QMAKE_CXXFLAGS *= /openmp
+} else {
+    QMAKE_CXXFLAGS *= -fopenmp
+    QMAKE_LFLAGS *= -fopenmp
+}
