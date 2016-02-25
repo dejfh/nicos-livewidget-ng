@@ -1,0 +1,8 @@
+#include "tomo/axisofrotation.h"
+#include "tomo/findaxisofrotation.h"
+#include "tomo/reconstructor.h"
+#include "tomo/reconstructorerrors.h"
+#include "tomo/shaders.h"
+#include "tomo/sinogramfile.h"
+#include "tomo/sinogramfileheader.h"
+#include "tomo/threadableglwidget.h"

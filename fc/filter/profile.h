@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_PROFILE_H
-#define FILTER_FS_PROFILE_H
+#ifndef FC_FILTER_PROFILE_H
+#define FC_FILTER_PROFILE_H
 
 #include <QLineF>
 
@@ -154,4 +154,4 @@ std::shared_ptr<Profile<ElementTypeOf_t<PredecessorType>>> makeProfile(std::shar
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_PROFILE_H
+#endif // FC_FILTER_PROFILE_H

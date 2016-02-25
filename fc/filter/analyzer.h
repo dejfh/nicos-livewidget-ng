@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_ANALYZER_H
-#define FILTER_FS_ANALYZER_H
+#ifndef FC_FILTER_ANALYZER_H
+#define FC_FILTER_ANALYZER_H
 
 #include "fc/datafilter.h"
 #include "fc/datafilterbase.h"
@@ -53,9 +53,8 @@ public:
 		Container<PredecessorElementType, PredecessorDimensionality> contiguousBuffer;
 		ndim::pointer<PredecessorElementType, PredecessorDimensionality> mutableData;
 
-		if (input.isMutable() && input.layout().isContiguous())
-			mutableData = input.mutableData();
-		else {
+		mutableData = input.mutableData();
+		if (!mutableData || !mutableData.isContiguous()) {
 			auto constData = input.constData();
 			contiguousBuffer.resize(constData.sizes);
 			mutableData = contiguousBuffer.mutableData();
@@ -134,4 +133,4 @@ std::shared_ptr<Analyzer<ElementTypeOf_t<_Predecessor>, DimensionalityOf_t<_Pred
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_ANALYZER_H
+#endif // FC_FILTER_ANALYZER_H

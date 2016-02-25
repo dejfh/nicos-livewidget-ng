@@ -41,29 +41,30 @@ public:
 	~ImagePlot();
 
 	const QPixmap pixmap() const;
-	void setPixmap(const QPixmap &pixmap);
-
 	std::function<double(size_t, size_t)> valueLookup() const;
-	void setValueLookup(std::function<double(size_t, size_t)> valueLookup);
-
 	SelectionMode selectionMode() const;
-	void setSelectionMode(SelectionMode mode);
 
 	GridMode gridMode() const;
-	void setGridMode(GridMode mode);
 	QSizeF gridInterval() const;
-	void setGridInterval(double interval);
-
 	QRectF selectionRect() const;
 	QLineF selectionLine() const;
 
+	QGraphicsView *graphicsView() const;
+
+public slots:
+	void setPixmap(const QPixmap &pixmap);
+	void setImage(const QImage &image);
+	void setValueLookup(std::function<double(size_t, size_t)> valueLookup);
+	void setSelectionMode(SelectionMode mode);
+	void setGridMode(GridMode mode);
+	void setGridInterval(double interval);
+
+public slots:
 	void setSelection(QRectF rect);
 	void setSelection(QLineF line);
 	void setSelection(QPointF start, QPointF end);
 	void setSelection(QPointF start, QSizeF size);
 	void resetSelection();
-
-	QGraphicsView *graphicsView() const;
 
 public slots:
 	void autoScale();

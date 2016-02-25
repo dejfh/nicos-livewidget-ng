@@ -14,7 +14,7 @@ namespace ndimdata
 size_t analyzeDuration(size_t size);
 
 template <typename _T>
-void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress &progress);
+void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
 
 } // namespace ndimdata
 

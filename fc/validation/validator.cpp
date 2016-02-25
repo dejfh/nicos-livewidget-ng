@@ -1,10 +1,8 @@
 #include "fc/validation/validator.h"
 
-#include "safecast.h"
+#include <iostream>
 
-using jfh::assert_result;
-
-#include <QDebug>
+#include <QStringList>
 
 namespace fc
 {
@@ -16,7 +14,7 @@ class ValidatorPreparationProgress : public PreparationProgress
 {
 public:
 	std::deque<std::shared_ptr<const Validatable>> queue;
-	std::vector<std::wstring> steps;
+	QStringList steps;
 	size_t duration;
 
 	ValidatorPreparationProgress()
@@ -38,44 +36,29 @@ public:
 
 	virtual void addStep(size_t flops, const QString &description) override
 	{
-		steps.push_back(description.toStdWString());
+		steps.append(description);
 		duration += flops;
 	}
 };
 
-void Validator::onValidationStarted()
-{
-}
-
-void Validator::onValidationStep()
-{
-}
-
-void Validator::onValidationComplete()
-{
-}
-
-void Validator::onInvalidated()
-{
-}
-
 Validator::Validator()
-	: m_activeValidatable(0)
+	: m_enabled(false)
 	, m_isWorking(false)
-	, m_isQueueValid(false)
 	, m_rebuildQueue(false)
-	, m_enabled(false)
+	, m_activeValidatable(nullptr)
+	, m_isQueueValid(false)
 	, m_hadException(false)
 {
 	m_dummy_ptr = std::make_shared<int>();
-	//	assert_result(connect(&m_watcher, SIGNAL(finished()), this, SLOT(finished())));
-	//	assert_result(connect(this, SIGNAL(invalidated()), this, SLOT(validate()), Qt::QueuedConnection));
-	//	m_watcher.setFuture(m_future);
 }
 
 Validator::~Validator()
 {
-	abort(true);
+	m_enabled = false;
+	m_progress.cancel();
+	if (m_isWorking)
+		m_future.wait();
+	m_isWorking = false;
 	for (const std::weak_ptr<const Validatable> &weak : m_validatables) {
 		std::shared_ptr<const Validatable> shared = weak.lock();
 		if (shared)
@@ -83,7 +66,7 @@ Validator::~Validator()
 	}
 }
 
-bool Validator::isWorking()
+bool Validator::isWorking() const
 {
 	return m_isWorking;
 }
@@ -97,22 +80,21 @@ void Validator::start()
 void Validator::abort(bool wait)
 {
 	m_enabled = false;
-	restart(wait);
-}
-
-void Validator::restart(bool wait)
-{
 	m_progress.cancel();
 	m_rebuildQueue = true;
 	m_isQueueValid = false;
 	if (wait && m_isWorking) {
 		m_future.wait();
-		bool wasEnabled = m_enabled;
-		m_enabled = false;
 		this->finished();
-		m_enabled = wasEnabled;
 	}
-	onInvalidated();
+}
+
+void Validator::restart(bool wait)
+{
+	bool wasEnabled = m_enabled;
+	abort(wait);
+	if (wasEnabled)
+		start();
 }
 
 void Validator::add(std::shared_ptr<const Validatable> validatable)
@@ -152,7 +134,7 @@ void Validator::state(size_t &progress, size_t &duration, size_t &step, size_t &
 		step = m_progress.currentStep();
 		stepCount = m_validationSteps.size();
 		if (step < stepCount)
-			description = QString::fromStdWString(m_validationSteps[step]);
+			description = m_validationSteps[step];
 		else
 			description = QString("finishing...");
 	}
@@ -160,10 +142,10 @@ void Validator::state(size_t &progress, size_t &duration, size_t &step, size_t &
 		description = QString("ERROR while ").append(description);
 }
 
-const std::vector<std::wstring> &Validator::descriptions() const
+QStringList Validator::descriptions() const
 {
-	//	if (!m_isQueueValid.load(std::memory_order_acquire))
-	//		return QStringList();
+	if (!m_isQueueValid.load(std::memory_order_acquire))
+		return QStringList();
 	return m_validationSteps;
 }
 
@@ -209,11 +191,11 @@ void Validator::prepareProc()
 	} catch (const OperationCanceledException &) {
 		return;
 	} catch (const std::exception &ex) {
-		m_hadException = true;
-		qWarning() << "Catch in filter::validation::Validator::prepareProc(): " << ex.what();
+		m_hadException = true; // TODO: What happens on an exception?
+		std::cerr << "Validation exception: " << ex.what() << std::endl;
 	} catch (...) {
+		std::cerr << "Unknown Validation exception." << std::endl;
 		m_hadException = true;
-		qWarning() << "Catch in filter::validation::Validator::prepareProc()";
 	}
 	m_progress.reset();
 	this->invokeFinished();
@@ -227,13 +209,11 @@ void Validator::validationProc()
 	} catch (const OperationCanceledException &) {
 		return;
 	} catch (const std::exception &ex) {
-		m_isQueueValid.store(false, std::memory_order_relaxed); // TODO: What happens on an exception?
-		m_hadException = true;
-		qWarning() << "Catch in filter::validation::Validator::validationProc(): " << ex.what();
+		m_hadException = true; // TODO: What happens on an exception?
+		std::cerr << "Validation exception: " << ex.what() << std::endl;
 	} catch (...) {
-		m_isQueueValid.store(false, std::memory_order_relaxed);
+		std::cerr << "Unknown Validation exception." << std::endl;
 		m_hadException = true;
-		qWarning() << "Catch in filter::validation::Validator::validationProc()";
 	}
 	this->invokeFinished();
 }

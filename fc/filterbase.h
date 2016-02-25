@@ -172,12 +172,12 @@ public:
 
 	PredecessorTuple predecessors() const
 	{
-		return m_handler.lockConst().data().predecessors;
+		return m_handler.unguarded().predecessors;
 	}
 	template <size_t I = 0>
 	typename std::tuple_element<I, PredecessorTuple>::type predecessor() const
 	{
-		return m_handler.lockConst().data().predecessor<I>();
+		return m_handler.unguarded().predecessor<I>();
 	}
 
 	void setPredecessors(PredecessorTuple predecessors)

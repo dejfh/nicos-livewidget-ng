@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_PILE_H
-#define FILTER_FS_PILE_H
+#ifndef FC_FILTER_PILE_H
+#define FC_FILTER_PILE_H
 
 #include <QVector>
 
@@ -123,4 +123,4 @@ std::shared_ptr<Pile<ElementType, PredecessorDimensionality>> makePile(size_t in
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_PILE_H
+#endif // FC_FILTER_PILE_H

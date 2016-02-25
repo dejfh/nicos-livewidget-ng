@@ -106,7 +106,7 @@ public:
 	virtual bool isValid() const = 0;
 };
 
-class PreparationProgress : public AsyncProgress
+class PreparationProgress : public AsyncProgress<size_t>
 {
 public:
 	virtual void appendValidatable(std::shared_ptr<const Validatable> fc) = 0;
@@ -121,7 +121,7 @@ public:
  * #### Threading
  * All methods are threadsafe and may be called by \b any thread.
  * */
-class ValidationProgress : public AsyncProgress
+class ValidationProgress : public AsyncProgress<size_t>
 {
 protected:
 	std::atomic<size_t> m_step;
@@ -131,6 +131,18 @@ public:
 		: m_step(0)
 	{
 	}
+	ValidationProgress(const ValidationProgress &other)
+		: AsyncProgress(other)
+		, m_step(other.m_step.load())
+	{
+	}
+	ValidationProgress &operator=(const ValidationProgress &other)
+	{
+		static_cast<AsyncProgress &>(*this) = other;
+		m_step = other.m_step.load();
+		return *this;
+	}
+
 	void reset()
 	{
 		AsyncProgress::reset();
@@ -140,6 +152,7 @@ public:
 	{
 		AsyncProgress::cancel();
 	}
+
 	void advanceStep()
 	{
 		++m_step;

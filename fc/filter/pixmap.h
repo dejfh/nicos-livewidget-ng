@@ -1,7 +1,8 @@
-#ifndef FILTER_FS_PIXMAP_H
-#define FILTER_FS_PIXMAP_H
+#ifndef FC_FILTER_PIXMAP_H
+#define FC_FILTER_PIXMAP_H
 
 #include <QPixmap>
+#include <QImage>
 
 #include "fc/datafilter.h"
 #include "fc/datafilterbase.h"
@@ -42,7 +43,7 @@ public:
 
 		return ndim::makeSizes();
 	}
-	Container<QPixmap> getData(ValidationProgress &progress, Container<QPixmap> *recycle) const
+	Container<QImage> getData(ValidationProgress &progress, Container<QImage> *recycle) const
 	{
 		using jfh::assert_cast;
 		using jfh::cast_over_void;
@@ -53,9 +54,9 @@ public:
 
 		auto dataPointer = data.constData();
 
-		QImage image(assert_cast<int>(dataPointer.width()), assert_cast<int>(dataPointer.height()), QImage::Format_RGB32);
+		QImage image(int(dataPointer.width()), int(dataPointer.height()), QImage::Format_RGB32);
 		ndim::pointer<QRgb, 2> imagePointer(cast_over_void<QRgb *>(image.bits()), dataPointer.sizes);
-		imagePointer.strides[1] = image.bytesPerLine() / sizeof(QRgb);
+		imagePointer.byte_strides[1] = hlp::byte_offset_t(image.bytesPerLine());
 		dataPointer.mirror(1);
 
 #pragma omp parallel
@@ -66,7 +67,7 @@ public:
 
 		auto result = fc::makeMutableContainer(recycle);
 
-		result.mutableData().first() = QPixmap::fromImage(image);
+		result.mutableData().first() = std::move(image);
 
 		progress.advanceProgress(dataPointer.size());
 		progress.advanceStep();
@@ -76,14 +77,14 @@ public:
 };
 
 template <typename _ElementType, typename _ColorMapType>
-class Pixmap : public HandlerDataFilterWithDescriptionBase<QPixmap, 0, PixmapHandler<_ElementType, _ColorMapType>>
+class Pixmap : public HandlerDataFilterWithDescriptionBase<QImage, 0, PixmapHandler<_ElementType, _ColorMapType>>
 {
 public:
 	using ElementType = _ElementType;
 	using ColorMapType = _ColorMapType;
 
 	Pixmap(ColorMapType colormap, const QString &description)
-		: HandlerDataFilterWithDescriptionBase<QPixmap, 0, PixmapHandler<_ElementType, _ColorMapType>>(colormap, description)
+		: HandlerDataFilterWithDescriptionBase<QImage, 0, PixmapHandler<_ElementType, _ColorMapType>>(colormap, description)
 	{
 	}
 
@@ -128,4 +129,4 @@ std::shared_ptr<Pixmap<ElementTypeOf_t<DataFilterType>, ColorMapType>> makePixma
 
 } // namespace filter
 } // namespace fc
-#endif // FILTER_FS_PIXMAP_H
+#endif // FC_FILTER_PIXMAP_H

@@ -1,5 +1,3 @@
-include(../cfitsio.prf)
-
 HEADERS += \
     $$PWD/fitsloader.h \
     $$PWD/fitsloadersettings.h

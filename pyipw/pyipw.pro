@@ -1,6 +1,6 @@
 TEMPLATE = lib
 TARGET = pyimageplotwidget
-CONFIG += staticlib
+CONFIG += shared
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -9,7 +9,8 @@ include(../ipw/ImagePlotWidget.pri)
 
 SOURCES +=
 
-HEADERS +=
+HEADERS += \
+    pyipw.h
 
 unix {
     target.path = /usr/lib
@@ -19,3 +20,8 @@ unix {
 DISTFILES += \
     pyipw.sip \
     setup.py
+
+setup.files = $$DISTFILES
+setup.path = $$OUT_PWD
+
+INSTALLS += setup

@@ -6,6 +6,9 @@
 #include <cstddef>
 #include <stdexcept>
 
+#include "helper/helper.h"
+#include "helper/byteoffset.h"
+
 #include "ndim/layout.h"
 #include "ndim/range.h"
 
@@ -36,13 +39,13 @@ struct pointer : ::ndim::layout<_D> {
 	}
 
 	pointer(_T *data, ndim::sizes<_D> sizes)
-		: layout<_D>(sizes)
+        : layout<_D>(sizes, hlp::byte_offset_t::inArray<_T>())
 		, data(data)
 	{
 	}
 
-	pointer(_T *data, const std::array<size_t, _D> &sizes, const std::array<ptrdiff_t, _D> &strides)
-		: layout<_D>(sizes, strides)
+    pointer(_T *data, const std::array<size_t, _D> &sizes, const std::array<hlp::byte_offset_t, _D> &byte_strides)
+        : layout<_D>(sizes, byte_strides)
 		, data(data)
 	{
 	}
@@ -71,12 +74,12 @@ struct pointer : ::ndim::layout<_D> {
 	template <typename... coords_t>
 	_T &operator()(size_t coordinate, coords_t... coordinates) const
 	{
-		return data[this->indexOf(coordinate, coordinates...)];
+        return *(data + this->offsetOf(coordinate, coordinates...));
 	}
 
 	_T &operator[](ndim::Indices<_D> coordinates) //
 	{
-		return data[this->indexOf(coordinates)];
+        return *(data + this->offsetOf(coordinates));
 	}
 
 	_T value(ndim::Indices<_D> coordinates, const _T &_default = _T())
@@ -98,6 +101,11 @@ struct pointer : ::ndim::layout<_D> {
 		return data;
 	}
 
+    bool isContiguous() const
+    {
+        return ndim::layout<_D>::isContiguous(hlp::byte_offset_t::inArray<_T>());
+    }
+
 	const ndim::layout<_D> &getLayout() const
 	{
 		return *this;
@@ -110,7 +118,7 @@ struct pointer : ::ndim::layout<_D> {
 
 	pointer<_T, _D - 1> removeDimension(size_t dimension, size_t index) const
 	{
-		_T *newData = data + this->strides[dimension] * index;
+        _T *newData = data + this->byte_strides[dimension] * index;
 		return pointer<_T, _D - 1>(newData, this->getLayout().removeDimension(dimension));
 	}
 	pointer<_T, _D + 1> addDimension(size_t dimension, size_t virtual_size) const
@@ -138,7 +146,7 @@ struct pointer : ::ndim::layout<_D> {
 	void selectRange(size_t dimension, size_t start, size_t end)
 	{
 		assert(dimension < _D && start <= this->sizes[dimension] && end <= this->sizes[dimension] && start <= end);
-		data += start * this->strides[dimension];
+        data += start * this->byte_strides[dimension];
 		this->sizes[dimension] = end - start;
 	}
 
@@ -168,8 +176,8 @@ struct pointer : ::ndim::layout<_D> {
 	void mirror(size_t dimension)
 	{
 		assert(dimension < _D);
-		data += (this->sizes[dimension] - 1) * this->strides[dimension];
-		this->strides[dimension] = -this->strides[dimension];
+        data += (this->sizes[dimension] - 1) * this->byte_strides[dimension];
+        this->byte_strides[dimension] = -this->byte_strides[dimension];
 	}
 
 	pointer<_T, _D> mirrored(size_t dimension)

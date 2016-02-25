@@ -37,7 +37,7 @@ size_t inPlaceMeanDuration(ndim::Sizes<_D_in> sizes, ndim::Indices<_D_out> selec
 
 template <typename _T_in, typename _T_out, size_t _D_in, size_t _D_out>
 void inPlaceMean(ndim::pointer<_T_in, _D_in> in, ndim::pointer<_T_out, _D_out> out, std::array<size_t, _D_out> selectedDimensions, size_t start,
-	size_t end, AsyncProgress &progress = AsyncProgress())
+    size_t end, AsyncProgress<size_t> &progress = AsyncProgress<size_t>())
 {
 	ndim::Indices<_D_in - _D_out> reducedDimensions = hlp::array::invertSelection<_D_in>(selectedDimensions);
 	ndim::pointer<_T_in, _D_in - _D_out> reduced = in.selectDimensions(reducedDimensions);

@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_FITS_H
-#define FILTER_FS_FITS_H
+#ifndef FC_FILTER_FITS_H
+#define FC_FILTER_FITS_H
 
 #include <array>
 
@@ -217,4 +217,4 @@ inline std::shared_ptr<fits::KeywordLoader> makeFitsKeywordLoader(const QString 
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_FITS_H
+#endif // FC_FILTER_FITS_H

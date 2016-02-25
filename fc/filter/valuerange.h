@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_VALUERANGE_H
-#define FILTER_FS_VALUERANGE_H
+#ifndef FC_FILTER_VALUERANGE_H
+#define FC_FILTER_VALUERANGE_H
 
 #include "fc/datafilter.h"
 #include "fc/datafilterbase.h"
@@ -112,4 +112,4 @@ inline std::shared_ptr<ValueRange> makeValueRange(std::shared_ptr<const DataFilt
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_VALUERANGE_H
+#endif // FC_FILTER_VALUERANGE_H

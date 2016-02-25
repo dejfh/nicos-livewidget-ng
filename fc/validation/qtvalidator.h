@@ -5,6 +5,8 @@
 
 #include "fc/validation/validator.h"
 
+#include "helper/helper.h"
+
 namespace fc
 {
 namespace validation
@@ -27,7 +29,7 @@ signals:
 public slots:
 
 private slots:
-	void syncInvoke();
+	void invokeFinishedSync();
 
 	// Validator interface
 protected:

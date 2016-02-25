@@ -1,23 +1,31 @@
 TEMPLATE = lib
 TARGET = pyfilterchain
-CONFIG += staticlib
+CONFIG += shared
+
+LIBS *= -lfilterchain -lpython2.7
 
 include(../defaults.prf)
 include(../openmp.prf)
-include(../fc/FilterChain.pri)
+include(../cfitsio.prf)
 
 SOURCES += \
-    outputfilter.cpp \
-    outputpixmap.cpp
+    filterchain.cpp \
+    pyfc.cpp
 
 HEADERS += filter2d.h \
     skipable2d.h \
-    outputfilter.h \
-    outputpixmap.h
+    pyfc.h \
+    filterchain.h \
+    numpyinput.h \
+    noopfilter2d.h
 
-DISTFILES +=
+DISTFILES += \
+    pyfc.sip \
+    setup.py
 
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
+setup.files = $$DISTFILES
+setup.path = $$OUT_PWD
+
+INSTALLS += setup
+
+INCLUDEPATH += C:/msys64/mingw64/include/python2.7

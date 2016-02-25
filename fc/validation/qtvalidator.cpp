@@ -1,9 +1,5 @@
 #include "qtvalidator.h"
 
-#include "helper/helper.h"
-
-using hlp::assert_true;
-
 namespace fc
 {
 namespace validation
@@ -12,10 +8,10 @@ namespace validation
 QtValidator::QtValidator(QObject *parent)
 	: QObject(parent)
 {
-	assert_true() << connect(this, SIGNAL(procDone()), this, SLOT(syncInvoke()), Qt::QueuedConnection);
+	hlp::assert_true() << connect(this, SIGNAL(procDone()), this, SLOT(invokeFinishedSync()), Qt::QueuedConnection);
 }
 
-void QtValidator::syncInvoke()
+void QtValidator::invokeFinishedSync()
 {
 	this->finished();
 }
@@ -46,4 +42,5 @@ void QtValidator::onInvalidated()
 }
 
 } // namespace validation
+
 } // namespace fc

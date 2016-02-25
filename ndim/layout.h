@@ -8,7 +8,9 @@
 
 #include <initializer_list>
 
+#include "helper/helper.h"
 #include "helper/array.h"
+#include "helper/byteoffset.h"
 
 namespace ndim
 {
@@ -20,7 +22,7 @@ template <size_t Dimensionality>
 using Sizes = std::array<size_t, Dimensionality>;
 
 template <size_t Dimensionality>
-using Strides = std::array<ptrdiff_t, Dimensionality>;
+using Strides = std::array<hlp::byte_offset_t, Dimensionality>;
 
 inline Indices<0> makeIndices()
 {
@@ -47,7 +49,7 @@ inline Strides<0> makeStrides()
 template <typename... StrideTypes>
 Strides<sizeof...(StrideTypes)> makeStrides(StrideTypes... strides)
 {
-	return Strides<sizeof...(StrideTypes)>{ptrdiff_t(strides)...};
+    return Strides<sizeof...(StrideTypes)>{hlp::byte_offset_t(strides)...};
 }
 
 template <size_t Dimensionality>
@@ -85,8 +87,8 @@ bool contains(Sizes<Dimensionality> sizes, size_t coord0, IndexTypes... coordN)
 template <size_t Dimensionality>
 bool isVirtual(Strides<Dimensionality> strides)
 {
-	for (ptrdiff_t stride : strides)
-		if (stride == 0)
+    for (hlp::byte_offset_t stride : strides)
+        if (!stride)
 			return true;
 	return false;
 }
@@ -170,38 +172,38 @@ template <size_t _D>
 struct strides;
 
 template <size_t _D>
-size_t _indexOf_forward(const strides<_D> &);
+hlp::byte_offset_t _indexOf_forward(const strides<_D> &);
 template <size_t _D, typename... indices_t>
-size_t _indexOf_forward(const strides<_D> &strides, size_t coordinate, indices_t... moreCoordinates);
+hlp::byte_offset_t _indexOf_forward(const strides<_D> &strides, size_t coordinate, indices_t... moreCoordinates);
 
 template <size_t _D>
-struct strides : std::array<ptrdiff_t, _D> {
+struct strides : std::array<hlp::byte_offset_t, _D> {
 	strides()
 	{
 	}
-	strides(const std::array<ptrdiff_t, _D> &other)
-		: std::array<ptrdiff_t, _D>(other)
+    strides(const std::array<hlp::byte_offset_t, _D> &other)
+        : std::array<hlp::byte_offset_t, _D>(other)
 	{
 	}
-	bool operator==(const std::array<ptrdiff_t, _D> &other)
+    bool operator==(const std::array<hlp::byte_offset_t, _D> &other)
 	{
-		return static_cast<std::array<ptrdiff_t, _D> &>(*this) == other;
+        return static_cast<std::array<hlp::byte_offset_t, _D> &>(*this) == other;
 	}
-	bool operator!=(const std::array<ptrdiff_t, _D> &other)
+    bool operator!=(const std::array<hlp::byte_offset_t, _D> &other)
 	{
-		return static_cast<std::array<ptrdiff_t, _D> &>(*this) != other;
+        return static_cast<std::array<hlp::byte_offset_t, _D> &>(*this) != other;
 	}
 
 	template <typename... indices_t>
-	size_t indexOf(size_t coordinate, indices_t... moreCoordinates) const
+    hlp::byte_offset_t indexOf(size_t coordinate, indices_t... moreCoordinates) const
 	{
 		static_assert(sizeof...(indices_t) + 1 == _D, "count of indices does not match count of dimensions.");
 		return _indexOf_forward(*this, coordinate, moreCoordinates...);
 	}
 
-	size_t indexOf(std::array<size_t, _D> coordinates) const
+    hlp::byte_offset_t indexOf(std::array<size_t, _D> coordinates) const
 	{
-		size_t pos = 0;
+        hlp::byte_offset_t pos(0);
 		for (size_t d = 0; d < _D; ++d)
 			pos += (*this)[d] * coordinates[d];
 		return pos;
@@ -225,61 +227,60 @@ struct strides : std::array<ptrdiff_t, _D> {
 };
 
 template <size_t _D>
-size_t _indexOf_forward(const ndim::strides<_D> &)
+hlp::byte_offset_t _indexOf_forward(const ndim::strides<_D> &)
 {
-	return 0;
+    return hlp::byte_offset_t(0);
 }
 template <size_t _D, typename... indices_t>
-size_t _indexOf_forward(const ndim::strides<_D> &strides, size_t coordinate, indices_t... moreCoordinates)
+hlp::byte_offset_t _indexOf_forward(const ndim::strides<_D> &strides, size_t coordinate, indices_t... moreCoordinates)
 {
 	return strides[_D - 1 - sizeof...(indices_t)] * coordinate + _indexOf_forward(strides, moreCoordinates...);
 }
 
 template <size_t _D>
 struct layout {
-	ndim::sizes<_D> sizes;
-	ndim::strides<_D> strides;
+    ndim::sizes<_D> sizes;
+    ndim::strides<_D> byte_strides;
 
 	layout()
 	{
 	}
-	explicit layout(ndim::sizes<_D> sizes)
+    explicit layout(ndim::sizes<_D> sizes, hlp::byte_offset_t base_stride)
 		: sizes(sizes)
-	{
-		ptrdiff_t stride = 1;
+    {
 		for (size_t d = 0; d < _D; ++d) {
-			strides[d] = stride;
-			stride *= sizes[d];
+            byte_strides[d] = base_stride;
+            base_stride *= sizes[d];
 		}
-	}
-	layout(ndim::sizes<_D> sizes, ndim::strides<_D> strides)
-		: sizes(sizes)
-		, strides(strides)
+    }
+    layout(ndim::sizes<_D> sizes, ndim::strides<_D> byte_strides)
+        : sizes(sizes)
+        , byte_strides(byte_strides)
+    {
+    }
+
+	template <typename... coordinatess_t>
+    hlp::byte_offset_t offsetOf(size_t coordinate, coordinatess_t... moreCoordinates) const
 	{
+		static_assert(sizeof...(coordinatess_t) + 1 == _D, "count of coordinates does not match count of dimensions.");
+        return byte_strides.indexOf(coordinate, moreCoordinates...);
 	}
 
 	template <typename... coordinatess_t>
-	size_t indexOf(size_t coordinate, coordinatess_t... moreCoordinates) const
+    hlp::byte_offset_t operator()(size_t coordinate, coordinatess_t... moreCoordinates) const
 	{
 		static_assert(sizeof...(coordinatess_t) + 1 == _D, "count of coordinates does not match count of dimensions.");
-		return strides.indexOf(coordinate, moreCoordinates...);
+        return byte_strides.indexOf(coordinate, moreCoordinates...);
 	}
 
-	template <typename... coordinatess_t>
-	size_t operator()(size_t coordinate, coordinatess_t... moreCoordinates) const
+    hlp::byte_offset_t offsetOf(const std::array<size_t, _D> &coordinates) const
 	{
-		static_assert(sizeof...(coordinatess_t) + 1 == _D, "count of coordinates does not match count of dimensions.");
-		return strides.indexOf(coordinate, moreCoordinates...);
+        return byte_strides.indexOf(coordinates);
 	}
 
-	size_t indexOf(const std::array<size_t, _D> &coordinates) const
+    hlp::byte_offset_t operator[](const std::array<size_t, _D> &coordinates) const
 	{
-		return strides.indexOf(coordinates);
-	}
-
-	size_t operator[](const std::array<size_t, _D> &coordinates) const
-	{
-		return strides.indexOf(coordinates);
+        return byte_strides.indexOf(coordinates);
 	}
 
 	size_t width() const
@@ -322,12 +323,12 @@ struct layout {
 	{
 		return sizes.isEmpty();
 	}
-	bool isContiguous() const
+    bool isContiguous(hlp::byte_offset_t base_stride) const
 	{
 
-		ptrdiff_t stride = 1;
+        hlp::byte_offset_t stride = base_stride;
 		for (size_t d = 0; d < _D; ++d) {
-			if (stride != strides[d])
+            if (stride != byte_strides[d])
 				return false;
 			stride *= sizes[d];
 		}
@@ -336,41 +337,42 @@ struct layout {
 
 	layout<_D - 1> removeDimension(size_t dimension) const
 	{
-		return layout<_D - 1>(hlp::array::remove(sizes, dimension), hlp::array::remove(strides, dimension));
+        return layout<_D - 1>(hlp::array::remove(sizes, dimension), hlp::array::remove(byte_strides, dimension));
 	}
 
 	layout<_D + 1> addDimension(size_t dimension, size_t virtualSize) const
 	{
-		return layout<_D + 1>(hlp::array::insert(sizes, dimension, virtualSize), hlp::array::insert(strides, dimension, 0));
+        return layout<_D + 1>(hlp::array::insert(sizes, dimension, virtualSize), hlp::array::insert(byte_strides, dimension, 0));
 	}
 
 	template <size_t _AD>
 	layout<_D + _AD> addDimensions(Indices<_AD> dimensions, Sizes<_AD> virtualSizes) const
 	{
-		return layout<_D + _AD>(hlp::array::insert(sizes, virtualSizes, dimensions), hlp::array::insert(strides, dimensions, ptrdiff_t(0)));
+        return layout<_D + _AD>(
+            hlp::array::insert(sizes, virtualSizes, dimensions), hlp::array::insert(byte_strides, dimensions, hlp::byte_offset_t(0)));
 	}
 
 	template <size_t _SD>
 	layout<_SD> selectDimensions(std::array<size_t, _SD> dimensions) const
 	{
-		return layout<_SD>(sizes.selectDimensions(dimensions), strides.selectDimensions(dimensions));
+        return layout<_SD>(sizes.selectDimensions(dimensions), byte_strides.selectDimensions(dimensions));
 	}
 
-	std::array<ptrdiff_t, _D> getHops() const
+    std::array<hlp::byte_offset_t, _D> getHops() const
 	{
-		std::array<ptrdiff_t, _D> hops;
-		hops[0] = strides[0];
+        std::array<hlp::byte_offset_t, _D> hops;
+        hops[0] = byte_strides[0];
 		for (size_t d = 1; d < _D; ++d)
-			hops[d] = strides[d] - strides[d - 1] * sizes[d - 1];
+            hops[d] = byte_strides[d] - byte_strides[d - 1] * sizes[d - 1];
 		return hops;
 	}
 };
 
-template <typename... SizesTypes>
-layout<1 + sizeof...(SizesTypes)> make_layout_contiguous(size_t size0, SizesTypes... sizeN)
-{
-	return layout<1 + sizeof...(SizesTypes)>(ndim::Sizes<1 + sizeof...(SizesTypes)>{size0, sizeN...});
-}
+// template <typename... SizesTypes>
+// layout<1 + sizeof...(SizesTypes)> make_layout_contiguous(size_t size0, SizesTypes... sizeN)
+//{
+//	return layout<1 + sizeof...(SizesTypes)>(ndim::Sizes<1 + sizeof...(SizesTypes)>{size0, sizeN...});
+//}
 
 // template <size_t _D>
 // void _make_layout_forward(layout<_D> &)

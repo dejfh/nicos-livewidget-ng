@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_ACCUMULATE_H
-#define FILTER_FS_ACCUMULATE_H
+#ifndef FC_FILTER_ACCUMULATE_H
+#define FC_FILTER_ACCUMULATE_H
 
 #include <array>
 
@@ -145,4 +145,4 @@ makeAccumulate(std::shared_ptr<PredecessorType> predecessor, OperationType opera
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_ACCUMULATE_H
+#endif // FC_FILTER_ACCUMULATE_H

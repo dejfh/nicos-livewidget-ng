@@ -3,18 +3,12 @@
 
 #include <fc/datafilter.h>
 
-namespace pyfc
-{
-
 class Filter2d
 {
 public:
 	Filter2d() = default;
-	~Filter2d() = default;
 
-	virtual std::shared_ptr<const fc::DataFilter<float, 2>> getFilter() const;
+	virtual std::shared_ptr<const fc::DataFilter<float, 2>> getFilter() const = 0;
 };
-
-} // namespace pyfc
 
 #endif // PYFC_FILTER2D_H

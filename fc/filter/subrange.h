@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_SUBRANGE_H
-#define FILTER_FS_SUBRANGE_H
+#ifndef FC_FILTER_SUBRANGE_H
+#define FC_FILTER_SUBRANGE_H
 
 #include "fc/datafilter.h"
 #include "fc/datafilterbase.h"
@@ -85,4 +85,4 @@ std::shared_ptr<Subrange<ElementTypeOf_t<_Predecessor>, DimensionalityOf_t<_Pred
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_SUBRANGE_H
+#endif // FC_FILTER_SUBRANGE_H

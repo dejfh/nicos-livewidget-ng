@@ -4,12 +4,16 @@
 #include <memory>
 
 #include "fc/filter.h"
-#include "ndimfilter/fits.h"
-#include "fc/switch.h"
-#include "fc/buffer.h"
-#include "ndimfilter/analyzer.h"
-#include "ndimfilter/range.h"
-#include "ndimfilter/pixmapbuilder.h"
+#include "fc/filter/forward.h"
+#include "fc/filter/fits.h"
+#include "fc/filter/switch.h"
+#include "fc/filter/buffer.h"
+#include "fc/filter/analyzer.h"
+#include "fc/filter/subrange.h"
+#include "fc/filter/valuerange.h"
+#include "fc/filter/pixmap.h"
+#include "fc/filter/perelement.h"
+
 #include "ndimdata/colormap.h"
 
 namespace fc
@@ -17,57 +21,67 @@ namespace fc
 namespace chains
 {
 
-template <typename _ElementType>
 class ImageOutputChain
 {
-public:
-	using ElementType = _ElementType;
-
 private:
-	std::shared_ptr<fc::SwitchControl> m_logSwitch;
+	std::shared_ptr<fc::filter::Forward<float, 2>> m_input;
 
-	std::shared_ptr<fc::RangeControl<2>> m_regionOfInterest;
-	std::shared_ptr<fc::Switch<float, 2>> m_regionOfInterestSwitch;
+	std::shared_ptr<fc::filter::SwitchControl> m_logSwitch;
 
-	std::shared_ptr<fc::Buffer<ndimdata::DataStatistic>> m_statisticBuffer;
+	std::shared_ptr<fc::filter::SubrangeControl<2>> m_regionOfInterest;
+	std::shared_ptr<fc::filter::Switch<float, 2>> m_regionOfInterestSwitch;
 
-	std::shared_ptr<fc::PixmapRange> m_colorRange;
-	std::shared_ptr<fc::SwitchControl> m_colormapSwitch;
-	std::shared_ptr<fc::Buffer<QPixmap>> m_pixmapBuffer;
+	std::shared_ptr<fc::filter::Buffer<ndimdata::DataStatistic>> m_statisticBuffer;
+
+	std::shared_ptr<fc::filter::ValueRange> m_colorRange;
+	std::shared_ptr<fc::filter::SwitchControl> m_colormapSwitch;
+	std::shared_ptr<fc::filter::Buffer<QImage>> m_pixmapBuffer;
 
 public:
-	ImageOutputChain(std::shared_ptr<const DataFilter<ElementType, 2>> source)
+	ImageOutputChain()
 	{
+		m_input = std::make_shared<fc::filter::Forward<float, 2>>();
+
 		// Calculate Log10
-		auto imageLog = fc::makeTransform("Applying logarithm...", [](float v) { return std::log10(v); }, 1, source);
+		auto imageLog = fc::filter::makePerElement("Applying logarithm...", [](float v) { return std::log10(v); }, m_input);
 		// Make Log skippable
-		auto logSwitch = fc::makeSwitch(source, imageLog);
+		auto logSwitch = fc::filter::makeSwitch(m_input, imageLog);
 
-		auto postBuffer = fc::makeBuffer(logSwitch);
+		auto postBuffer = fc::filter::makeBuffer(logSwitch);
 
-		auto region = fc::makeRange(postBuffer);
+		auto region = fc::filter::makeSubrange(postBuffer);
 
-		auto regionSwitch = fc::makeSwitch(postBuffer, region);
+		auto regionSwitch = fc::filter::makeSwitch(postBuffer, region);
 
 		// Analyze processed data
-		auto analyzer = fc::makeAnalyzer(regionSwitch, "Generating statistic...");
+		auto analyzer = fc::filter::makeAnalyzer(regionSwitch, "Generating statistic...");
 		// Buffer statistic
-		m_statisticBuffer = fc::makeBuffer(analyzer);
+		m_statisticBuffer = fc::filter::makeBuffer(analyzer);
 		// Select range for colormaps
-		m_colorRange = fc::makePixmapRange(m_statisticBuffer);
+		m_colorRange = fc::filter::makeValueRange(m_statisticBuffer);
 		// Apply grayscale colormap
-		auto pixmapGrayscale = fc::makePixmapBuilder(postBuffer, m_colorRange, ndimdata::ColorMapGrayscale(0, 1), "Generating image...");
+		auto pixmapGrayscale = fc::filter::makePixmap(postBuffer, m_colorRange, ndimdata::ColorMapGrayscale(0, 1), "Generating image...");
 		// Apply color colormap
-		auto pixmapColor = fc::makePixmapBuilder(postBuffer, m_colorRange, ndimdata::ColorMapColor(0, 1), "Generating image...");
+		auto pixmapColor = fc::filter::makePixmap(postBuffer, m_colorRange, ndimdata::ColorMapColor(0, 1), "Generating image...");
 		// Select final image
-		auto colormapSwitch = fc::makeSwitch(pixmapGrayscale, pixmapColor);
+		auto colormapSwitch = fc::filter::makeSwitch(pixmapGrayscale, pixmapColor);
 		// Buffer final image
-		m_pixmapBuffer = fc::makeBuffer(colormapSwitch);
+		m_pixmapBuffer = fc::filter::makeBuffer(colormapSwitch);
 
 		m_logSwitch = std::move(logSwitch);
 		m_regionOfInterest = std::move(region);
 		m_regionOfInterestSwitch = std::move(regionSwitch);
 		m_colormapSwitch = std::move(colormapSwitch);
+	}
+
+	std::shared_ptr<const DataFilter<float, 2>> source() const
+	{
+		return m_input->predecessor();
+	}
+
+	void setSource(std::shared_ptr<const DataFilter<float, 2>> source)
+	{
+		m_input->setPredecessor(source);
 	}
 
 	void setLog(bool log)
@@ -108,11 +122,11 @@ public:
 		return m_regionOfInterestSwitch;
 	}
 
-	std::shared_ptr<const fc::Buffer<ndimdata::DataStatistic>> statistic() const
+	std::shared_ptr<const fc::filter::Buffer<ndimdata::DataStatistic>> statistic() const
 	{
 		return m_statisticBuffer;
 	}
-	std::shared_ptr<const fc::Buffer<QPixmap>> pixmap() const
+	std::shared_ptr<const fc::filter::Buffer<QImage>> pixmap() const
 	{
 		return m_pixmapBuffer;
 	}

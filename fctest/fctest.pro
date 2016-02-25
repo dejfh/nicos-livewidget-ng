@@ -1,14 +1,13 @@
+TEMPLATE = app
 TARGET = fctest
 CONFIG += console
 CONFIG -= app_bundle
 
-CONFIG += blubb
-
-TEMPLATE = app
+LIBS *= -lfilterchain
 
 include(../defaults.prf)
-
-include(../fc/FilterChain.pri)
+include(../openmp.prf)
+include(../cfitsio.prf)
 
 SOURCES += main.cpp \
 	headeronly.cpp \

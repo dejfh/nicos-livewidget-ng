@@ -3,6 +3,7 @@
 
 #include <tuple>
 
+#include "fc/datafilter.h"
 #include "fc/filterbase.h"
 
 namespace fc

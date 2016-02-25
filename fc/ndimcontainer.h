@@ -102,7 +102,7 @@ public:
 	{
 		m_ownership.resize(sizes.size());
 		m_constData = m_mutableData = m_ownership.data();
-		m_layout = ndim::layout<Dimensionality>(sizes);
+		m_layout = ndim::layout<Dimensionality>(sizes, hlp::byte_offset_t::inArray<ElementType>());
 	}
 
 	bool ownsData() const

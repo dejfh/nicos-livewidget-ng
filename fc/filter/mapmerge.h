@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_MAPMERGE_H
-#define FILTER_FS_MAPMERGE_H
+#ifndef FC_FILTER_MAPMERGE_H
+#define FC_FILTER_MAPMERGE_H
 
 #include <QVector>
 #include <QMap>
@@ -91,4 +91,4 @@ std::shared_ptr<MapMerge<KeyType, ValueType>> makeMapMerge(const QVector<std::sh
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_MAPMERGE_H
+#endif // FC_FILTER_MAPMERGE_H

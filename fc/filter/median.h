@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_MEDIAN_H
-#define FILTER_FS_MEDIAN_H
+#ifndef FC_FILTER_MEDIAN_H
+#define FC_FILTER_MEDIAN_H
 
 #include <numeric>
 
@@ -78,7 +78,7 @@ public:
 		Container<ElementType, PredecessorDimensionality> temp;
 		ndim::Sizes<MedianDimensionality> medianDimensions = hlp::array::invertSelection<PredecessorDimensionality>(resultDimensions);
 
-		if (input.isMutable() && constData.getLayout().selectDimensions(medianDimensions).isContiguous())
+		if (input.isMutable() && constData.selectDimensions(medianDimensions).isContiguous())
 			mutableData = input.mutableData();
 		else {
 			// reorder median dimensions to front to make them contiguous.
@@ -159,4 +159,4 @@ auto makeMedian(QString description, std::shared_ptr<PredecessorType> predecesso
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_MEDIAN_H
+#endif // FC_FILTER_MEDIAN_H

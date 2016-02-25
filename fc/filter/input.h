@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_INPUT_H
-#define FILTER_FS_INPUT_H
+#ifndef FC_FILTER_INPUT_H
+#define FC_FILTER_INPUT_H
 
 #include <atomic>
 
@@ -84,4 +84,4 @@ std::shared_ptr<Input<ElementType, Dimensionality>> makeInput()
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_INPUT_H
+#endif // FC_FILTER_INPUT_H

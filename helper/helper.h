@@ -5,6 +5,8 @@
 
 #include <cassert>
 
+#include "boost/type_traits/copy_cv.hpp"
+
 namespace hlp
 {
 
@@ -16,28 +18,46 @@ void unused(UnusedTypes &&...)
 
 inline void assert_result(bool result)
 {
-	assert(result);
+    if (!result) {
+        assert(result);
+    }
 	unused(result);
 }
 
 struct assert_true {
+    assert_true() = default;
+    assert_true(bool value)
+    {
+        assert_result(value);
+    }
 };
 
-inline void operator<<(const assert_true &, bool value)
+inline const assert_true &operator<<(const assert_true &at, bool value)
 {
 	assert_result(value);
+    return at;
 }
-inline void operator<<(assert_true &&, bool value)
+inline assert_true &&operator<<(assert_true &&at, bool value)
 {
 	assert_result(value);
+    return std::move(at);
 }
-inline void operator>>(bool value, const assert_true &)
+inline const assert_true &operator>>(bool value, const assert_true &at)
 {
 	assert_result(value);
+    return at;
 }
-inline void operator>>(bool value, assert_true &&)
+inline assert_true &&operator>>(bool value, assert_true &&at)
 {
 	assert_result(value);
+    return std::move(at);
+}
+
+template <typename out_t, typename in_t>
+inline out_t cast_over_void(in_t *ptr)
+{
+    using void_cv_t = typename boost::copy_cv<void, in_t>::type;
+    return static_cast<out_t>(static_cast<void_cv_t *>(ptr));
 }
 
 /*! \brief Throws a std::invalid_argument exception if the given pointer is null.

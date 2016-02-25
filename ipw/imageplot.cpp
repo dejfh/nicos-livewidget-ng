@@ -66,15 +66,16 @@ ImagePlot::ImagePlot(QWidget *parent)
 	ui->view->setRenderHint(QPainter::Antialiasing);
 	ui->view->setScene(m_scene);
 
-	hlp::assert_true() << connect(m_trackerItem, SIGNAL(rightClick(QPointF)), this, SLOT(autoScale()));
-	hlp::assert_true() << connect(m_trackerItem, SIGNAL(selectionComplete(QRectF)), this, SLOT(makeSelection(QRectF)));
-	hlp::assert_true() << connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updatePixmapGeometry()));
-	hlp::assert_true() << connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updateScales()));
-	hlp::assert_true() << connect(this, SIGNAL(resized()), this, SLOT(updateScales()), Qt::QueuedConnection);
-	hlp::assert_true() << connect(m_selectionRectItem, SIGNAL(selectionChanged(QRectF)), this, SLOT(selectionItemChanged(QRectF)));
-	hlp::assert_true() << connect(m_selectionRectItem, SIGNAL(rightClicked(QRectF, QPoint)), this, SLOT(selectionItemRightClicked(QRectF, QPoint)));
-	hlp::assert_true() << connect(m_selectionLineItem, SIGNAL(selectionChanged(QLineF)), this, SLOT(selectionItemChanged(QLineF)));
-	hlp::assert_true() << connect(m_selectionLineItem, SIGNAL(rightClicked(QLineF, QPoint)), this, SLOT(selectionItemRightClicked(QLineF, QPoint)));
+	hlp::assert_true() //
+		<< connect(m_trackerItem, SIGNAL(rightClick(QPointF)), this, SLOT(autoScale()))
+		<< connect(m_trackerItem, SIGNAL(selectionComplete(QRectF)), this, SLOT(makeSelection(QRectF)))
+		<< connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updatePixmapGeometry()))
+		<< connect(m_transform, SIGNAL(viewChanged()), this, SLOT(updateScales()))
+		<< connect(this, SIGNAL(resized()), this, SLOT(updateScales()), Qt::QueuedConnection)
+		<< connect(m_selectionRectItem, SIGNAL(selectionChanged(QRectF)), this, SLOT(selectionItemChanged(QRectF)))
+		<< connect(m_selectionRectItem, SIGNAL(rightClicked(QRectF, QPoint)), this, SLOT(selectionItemRightClicked(QRectF, QPoint)))
+		<< connect(m_selectionLineItem, SIGNAL(selectionChanged(QLineF)), this, SLOT(selectionItemChanged(QLineF)))
+		<< connect(m_selectionLineItem, SIGNAL(rightClicked(QLineF, QPoint)), this, SLOT(selectionItemRightClicked(QLineF, QPoint)));
 
 	ui->view->installEventFilter(this);
 }
@@ -92,6 +93,11 @@ void ImagePlot::setPixmap(const QPixmap &pixmap)
 {
 	m_pixmapItem->setPixmap(pixmap);
 	m_transform->setDataRect(QRectF(QPointF(), pixmap.size()));
+}
+
+void ImagePlot::setImage(const QImage &image)
+{
+	setPixmap(QPixmap::fromImage(image));
 }
 
 std::function<double(size_t, size_t)> ImagePlot::valueLookup() const

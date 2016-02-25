@@ -16,13 +16,13 @@ template <size_t _D, typename... _Ts>
 class multiIterator
 {
 	std::tuple<_Ts *...> m_pointers;
-	std::array<std::array<ptrdiff_t, _D>, sizeof...(_Ts)> m_hops;
+    std::array<std::array<hlp::byte_offset_t, _D>, sizeof...(_Ts)> m_hops;
 	std::array<size_t, _D> m_pos;
 	std::array<size_t, _D> m_sizes;
 
-	std::array<ptrdiff_t, _D> _makeHops(std::array<ptrdiff_t, _D> strides, std::array<size_t, _D> sizes)
+    std::array<hlp::byte_offset_t, _D> _makeHops(std::array<hlp::byte_offset_t, _D> strides, std::array<size_t, _D> sizes)
 	{
-		std::array<ptrdiff_t, _D> hops;
+        std::array<hlp::byte_offset_t, _D> hops;
 		hops[0] = strides[0];
 		for (size_t d = 1; d < _D; ++d)
 			hops[d] = strides[d] - sizes[d - 1] * strides[d - 1];
@@ -37,7 +37,7 @@ class multiIterator
 		else
 			m_sizes = std::get<0>(pointers).sizes;
 		std::get<I>(m_pointers) = std::get<I>(pointers).data;
-		std::get<I>(m_hops) = _makeHops(std::get<I>(pointers).strides, std::get<I>(pointers).sizes);
+        std::get<I>(m_hops) = _makeHops(std::get<I>(pointers).byte_strides, std::get<I>(pointers).sizes);
 		assert(std::get<I>(pointers).sizes == m_sizes);
 	}
 

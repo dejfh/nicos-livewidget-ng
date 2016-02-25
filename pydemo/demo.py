@@ -6,42 +6,54 @@
 import sys
 import glob
 
-from PyQt4.QtGui import QMainWindow, QApplication
+from PyQt4.QtCore import QObject, pyqtSlot
+from PyQt4.QtGui import QMainWindow, QApplication, QWidget, QPixmap
 from PyQt4.uic import loadUi
 
-from nicosfilterchain import Validator, Input2dNumpy, Output2dNumpy, OutputPixmap, Filter2d
+import numpy
 
-from nicosimagewidget import ImagePlotWidget
+from nicosfilterchain import FilterChain #, NoopFilter2d
+from nicosimageplot import ImagePlot #, HistogramPlot, RangeSelectWidget
 
-from nicosfilterchain import __version__ as nicosfilterchainversion
-from nicosimagewidget import __version__ as nicosimagewidgetversion
+# from nicosfilterchain import __VERSION__ as nicosfilterchainversion
+# from nicosimagewidget import __VERSION__ as nicosimagewidgetversion
 
-# Allow running this after "python setup.py build"
+# Allow running this after "python setup.py build" ???
 sys.path[0:0] = glob.glob('build/lib.*')
 
 class MainWindow(QMainWindow):
     def __init__(self, parent):
-	QMainWindow.__init__(self, parent)
-	loadUi('demo.ui', self)
+        QMainWindow.__init__(self, parent)
+        loadUi('demo.ui', self)
 
-	self.imagewidget = ImagePlotWidget(self)
-	self.plotLayout.addWidget(self.imagewidget)
+        filterChain = FilterChain(self)
+        self.fc = filterChain
 
-	x = open("testdata/testdata.npy").read()[80:]
-	data = LWData(1024, 1024, 1, "<u4", x)
+        data = numpy.identity(200)
+        data = numpy.array(data, dtype='f')
+        print data
+        filterChain.setInput(data)
 
-    def setWindowTitle(self, title):
-	title += ' version:' + __version__
-	QMainWindow.setWindowTitle(self, title)
+        # filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
+        # filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
+        # filterChain.setOpenBeamFitsFile('C:/Dev/huge data/Tomography/lava/openbeam/ob_seismolava64__1.fits')
 
-    def onPixmap(self, pixmap):
-	self.imagewidget.
+        # filters = [ NoopFilter2d(), NoopFilter2d(), NoopFilter2d() ]
+        # filterChain.setFilters(filters)
 
+        # self.controlsLayout.append(filter.getControl()) for filter in filters
+
+        self.imagewidget = ImagePlot(self)
+        self.setCentralWidget(self.imagewidget)
+
+        filterChain.pixmapChanged.connect(self.imagewidget.setImage)
+
+        filterChain.start()
 
 if __name__ == '__main__':
+
     app = QApplication(sys.argv[1:])
     window = MainWindow(None)
-    window.setWindowTitle('LiveWidget demo')
     window.resize(1000, 600)
     window.show()
     app.exec_()

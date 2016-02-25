@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_EXTEND_H
-#define FILTER_FS_EXTEND_H
+#ifndef FC_FILTER_EXTEND_H
+#define FC_FILTER_EXTEND_H
 
 #include <array>
 
@@ -112,4 +112,4 @@ makeExtend(
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_EXTEND_H
+#endif // FC_FILTER_EXTEND_H

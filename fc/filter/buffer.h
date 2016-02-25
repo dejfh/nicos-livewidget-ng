@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_BUFFER_H
-#define FILTER_FS_BUFFER_H
+#ifndef FC_FILTER_BUFFER_H
+#define FC_FILTER_BUFFER_H
 
 #include "fc/datafilter.h"
 #include "fc/datafilterbase.h"
@@ -102,7 +102,7 @@ public:
 public:
 	virtual ndim::sizes<Dimensionality> prepare(PreparationProgress &progress) const override
 	{
-		this->prepare(progress);
+		this->prepareValidation(progress);
 		return m_data.layout().sizes;
 	}
 	virtual Container<ElementType, Dimensionality> getData(
@@ -130,4 +130,4 @@ std::shared_ptr<Buffer<ElementTypeOf_t<PredecessorType>, DimensionalityOf_t<Pred
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_BUFFER_H
+#endif // FC_FILTER_BUFFER_H

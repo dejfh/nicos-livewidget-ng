@@ -1,5 +1,5 @@
-#ifndef FILTER_FS_SWITCH_H
-#define FILTER_FS_SWITCH_H
+#ifndef FC_FILTER_SWITCH_H
+#define FC_FILTER_SWITCH_H
 
 #include <QVector>
 
@@ -132,4 +132,4 @@ std::shared_ptr<Switch<ElementTypeOf_t<_PredecessorTypes...>, DimensionalityOf_t
 } // namespace filter
 } // namespace fc
 
-#endif // FILTER_FS_SWITCH_H
+#endif // FC_FILTER_SWITCH_H
