@@ -69,6 +69,7 @@ class moc_build_ext(sip_build_ext):
 extra_include_dirs = [".."]
 extra_libs = ["pyimageplotwidget"]
 extra_lib_dirs = ['C:/Dev/build/nicos-livewidget-ng-Desktop_Qt_4_8_7_msys64-Release/bin']
+extra_lib_dirs = ['/home/felix/Projekte/build/nicos-livewidget-ng-Desktop_Qt4_8_6-Debug/bin/']
 
 """if sys.platform == 'darwin':
     extra_include_dirs = ["/usr/local/qwt/include", "/usr/local/cfitsio/include"]
@@ -102,7 +103,8 @@ else:
 
 extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
         for subdir in ['', 'QtCore', 'QtGui'])
-extra_libs.extend(['QtCore4', 'QtGui4'])
+# extra_libs.extend(['QtCore4', 'QtGui4'])
+extra_libs.extend(['QtCore', 'QtGui'])
 extra_lib_dirs.append(qt_lib_dir)
 
 sources = []

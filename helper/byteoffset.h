@@ -5,7 +5,7 @@
 
 #include "helper/helper.h"
 
-#include "boost/type_traits/copy_cv.hpp"
+#include "helper/type_traits.h"
 
 namespace hlp
 {
@@ -79,7 +79,7 @@ inline static byte_offset_t &operator-=(byte_offset_t &a, byte_offset_t b)
 template <typename _T>
 static _T *operator+(_T *ptr, byte_offset_t offset)
 {
-    using char_cv_t = typename boost::copy_cv<char, _T>::type;
+	using char_cv_t = hlp::copy_cv_t<char, _T>;
     auto *char_ptr = hlp::cast_over_void<char_cv_t *>(ptr);
     char_ptr += offset.value;
     return hlp::cast_over_void<_T *>(char_ptr);

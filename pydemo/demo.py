@@ -24,7 +24,7 @@ sys.path[0:0] = glob.glob('build/lib.*')
 class MainWindow(QMainWindow):
     def __init__(self, parent):
         QMainWindow.__init__(self, parent)
-        loadUi('demo.ui', self)
+        ui = loadUi('demo.ui', self)
 
         filterChain = FilterChain(self)
         self.fc = filterChain
@@ -32,7 +32,9 @@ class MainWindow(QMainWindow):
         data = numpy.identity(200)
         data = numpy.array(data, dtype='f')
         print data
-        filterChain.setInput(data)
+        # filterChain.setInput(data)
+
+        filterChain.setInputFitsFile('/home/felix/Projekte/daten/lava/raw/seismolava64__000.000.fits')
 
         # filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
         # filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
@@ -45,6 +47,9 @@ class MainWindow(QMainWindow):
 
         self.imagewidget = ImagePlot(self)
         self.setCentralWidget(self.imagewidget)
+
+        ui.checkColor.toggled.connect(filterChain.setUseColor)
+        ui.checkColor.setChecked(1)
 
         filterChain.pixmapChanged.connect(self.imagewidget.setImage)
 

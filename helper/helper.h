@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-#include "boost/type_traits/copy_cv.hpp"
+#include "helper/type_traits.h"
 
 namespace hlp
 {
@@ -56,7 +56,7 @@ inline assert_true &&operator>>(bool value, assert_true &&at)
 template <typename out_t, typename in_t>
 inline out_t cast_over_void(in_t *ptr)
 {
-    using void_cv_t = typename boost::copy_cv<void, in_t>::type;
+	using void_cv_t = hlp::copy_cv_t<void, in_t>;
     return static_cast<out_t>(static_cast<void_cv_t *>(ptr));
 }
 

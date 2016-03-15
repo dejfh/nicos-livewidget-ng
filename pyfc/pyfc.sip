@@ -66,12 +66,12 @@ public:
 	void setInputFitsFile(const QString &filename);
 
 	void setDarkImage(PyObject *numpy2d);
-	void setDarkImages(PyObject *numpy3d, quint64 medianDimension);
+	void setDarkImages(PyObject *numpy3d, quint32 medianDimension);
 	void setDarkImageFitsFile(const QString &filename);
 	void setDarkImageFitsFiles(const QStringList &filenames);
 
 	void setOpenBeam(PyObject *numpy2d);
-	void setOpenBeams(PyObject *numpy3d, quint64 medianDimension);
+	void setOpenBeams(PyObject *numpy3d, quint32 medianDimension);
 	void setOpenBeamFitsFile(const QString &filename);
 	void setOpenBeamFitsFiles(const QStringList &filenames);
 
@@ -91,5 +91,5 @@ public:
 	void restart(bool wait);
 
 	QStringList stepDescriptions() const;
-	void state(quint64 &progress, quint64 &duration, quint64 &step, quint64 &stepCount, QString &description) const;
+// void state(quint64 &progress, quint64 &duration, quint64 &step, quint64 &stepCount, QString &description) const;
 };

@@ -37,5 +37,6 @@ win32 {
     }
 }
 unix {
+    LIBS *=-L/usr/local/qwt-6.1.2-qt-4.8.6/lib
     LIBS *= -lqwt
 }

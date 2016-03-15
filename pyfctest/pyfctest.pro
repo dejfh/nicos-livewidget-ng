@@ -15,4 +15,5 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-INCLUDEPATH += C:/msys64/mingw64/include/python2.7
+unix: INCLUDEPATH += /usr/include/python2.7
+else: INCLUDEPATH += C:/msys64/mingw64/include/python2.7
