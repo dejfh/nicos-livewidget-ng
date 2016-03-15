@@ -74,7 +74,7 @@ bool Validator::isWorking() const
 void Validator::start()
 {
 	m_enabled = true;
-	validate();
+	this->invokeFinished();
 }
 
 void Validator::abort(bool wait)
@@ -220,14 +220,16 @@ void Validator::validationProc()
 
 void Validator::finished()
 {
-	if (!m_isWorking)
-		return;
-	if (m_future.wait_for(std::chrono::seconds::zero()) != std::future_status::ready)
-		return;
-	m_future.get();
-	m_activeValidatable = nullptr;
-	m_isWorking = false;
-	onValidationStep();
+	if (m_isWorking) {
+		if (m_future.wait_for(std::chrono::seconds::zero()) != std::future_status::ready)
+			return;
+		else {
+			m_future.get();
+			m_activeValidatable = nullptr;
+			m_isWorking = false;
+			onValidationStep();
+		}
+	}
 	validate();
 }
 
@@ -238,6 +240,7 @@ void Validator::predecessorInvalidated(const Predecessor *predecessor)
 	else
 		m_rebuildQueue = true;
 	m_hadException = false;
+	this->invokeFinished();
 	onInvalidated();
 }
 
