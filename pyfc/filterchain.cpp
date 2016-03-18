@@ -144,11 +144,9 @@ void FilterChain::setOpenBeamFitsFiles(const QStringList &filenames)
 	// TODO: Not implemented yet!
 }
 
-void FilterChain::setInts(const QVector<int> &ints)
+void FilterChain::setFilters(const QVector<Skipable2d *> &filterList)
 {
-	std::cout << "Ints: " << ints.count() << std::endl;
-	for (int i : ints)
-		std::cout << i << std::endl;
+	// TODO: Not implemented yet!
 }
 
 // void FilterChain::setFilters(const QList<Skipable2d *> &filterList)
@@ -172,6 +170,21 @@ void FilterChain::setColorRange(double min, double max)
 void FilterChain::setUseColor(bool useColor)
 {
 	m_imageOutputChain.setColor(useColor);
+}
+
+void FilterChain::setInvert(bool invert)
+{
+	m_imageOutputChain.setInvert(invert);
+}
+
+void FilterChain::setNormalize(bool normalize)
+{
+	// TODO: Not implemented yet!
+}
+
+void FilterChain::setLogarithmic(bool logarithmic)
+{
+	m_imageOutputChain.setLog(logarithmic);
 }
 
 bool FilterChain::hasData() const

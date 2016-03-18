@@ -61,7 +61,7 @@ signals:
 	void pixmapChanged(QImage pixmap);
 	void statisticChanged();
 
-public:
+public slots:
 	void setInput(PyObject *numpy2d);
 	void setInputFitsFile(const QString &filename);
 
@@ -77,9 +77,14 @@ public:
 
 	//void setFilters(const QVector<Skipable2d *> &filterList);
 
-	void setColorRange(double min, double max);
 	void setUseColor(bool useColor);
+	void setInvert(bool invert);
+	void setNormalize(bool normalize);
+	void setLogarithmic(bool logarithmic);
 
+	void setColorRange(double min, double max);
+
+public:
 	bool hasData() const;
 	PyObject *data() const;
 	bool hasPixmap() const;

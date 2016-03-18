@@ -221,13 +221,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="checkNormalize">
-           <property name="text">
-            <string>Normalize</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QCheckBox" name="checkLogarithmic">
            <property name="text">
             <string>Logarithmic</string>
@@ -235,7 +228,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QCheckBox" name="checkNormalize">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Normalize</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="checkGrid">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Grid</string>
            </property>

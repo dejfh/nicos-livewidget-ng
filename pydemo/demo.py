@@ -34,11 +34,11 @@ class MainWindow(QMainWindow):
         print data
         # filterChain.setInput(data)
 
-        filterChain.setInputFitsFile('/home/felix/Projekte/daten/lava/raw/seismolava64__000.000.fits')
+        # filterChain.setInputFitsFile('/home/felix/Projekte/daten/lava/raw/seismolava64__000.000.fits')
 
-        # filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
-        # filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
-        # filterChain.setOpenBeamFitsFile('C:/Dev/huge data/Tomography/lava/openbeam/ob_seismolava64__1.fits')
+        filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
+        filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
+        filterChain.setOpenBeamFitsFile('C:/Dev/huge data/Tomography/lava/openbeam/ob_seismolava64__1.fits')
 
         # filters = [ NoopFilter2d(), NoopFilter2d(), NoopFilter2d() ]
         # filterChain.setFilters(filters)
@@ -49,7 +49,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.imagewidget)
 
         ui.checkColor.toggled.connect(filterChain.setUseColor)
-        ui.checkColor.setChecked(1)
+        ui.checkInvert.toggled.connect(filterChain.setInvert)
+        ui.checkNormalize.toggled.connect(filterChain.setNormalize)
+        ui.checkLogarithmic.toggled.connect(filterChain.setLogarithmic)
 
         filterChain.pixmapChanged.connect(self.imagewidget.setImage)
 
