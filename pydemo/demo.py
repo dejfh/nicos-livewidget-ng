@@ -12,14 +12,16 @@ from PyQt4.uic import loadUi
 
 import numpy
 
+# Allow running this after "python setup.py build"
+sys.path[0:0] = glob.glob('../pyfc/build/lib.*')
+sys.path[0:0] = glob.glob('../pyipw/build/lib.*')
+
 from nicosfilterchain import FilterChain #, NoopFilter2d
 from nicosimageplot import ImagePlot #, HistogramPlot, RangeSelectWidget
 
 # from nicosfilterchain import __VERSION__ as nicosfilterchainversion
 # from nicosimagewidget import __VERSION__ as nicosimagewidgetversion
 
-# Allow running this after "python setup.py build" ???
-sys.path[0:0] = glob.glob('build/lib.*')
 
 class MainWindow(QMainWindow):
     def __init__(self, parent):
