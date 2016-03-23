@@ -1,23 +1,24 @@
 TEMPLATE = lib
 TARGET = pyfilterchain
-CONFIG += shared
-
-LIBS *= -lfilterchain -lpython2.7
+CONFIG += staticlib
 
 include(../defaults.prf)
+
+# LIBS += -lfilterchain -lpython2.7
+
 include(../openmp.prf)
-include(../cfitsio.prf)
+
+LIBS += -lcfitsio
 
 SOURCES += \
     filterchain.cpp \
     pyfc.cpp
 
-HEADERS += filter2d.h \
-    skipable2d.h \
+HEADERS += \
     pyfc.h \
     filterchain.h \
     numpyinput.h \
-    noopfilter2d.h
+    filter2d.h
 
 DISTFILES += \
     pyfc.sip \

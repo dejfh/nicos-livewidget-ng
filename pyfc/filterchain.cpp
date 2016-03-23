@@ -144,10 +144,10 @@ void FilterChain::setOpenBeamFitsFiles(const QStringList &filenames)
 	// TODO: Not implemented yet!
 }
 
-void FilterChain::setFilters(const QVector<Skipable2d *> &filterList)
-{
-	// TODO: Not implemented yet!
-}
+//void FilterChain::setFilters(const QVector<Skipable2d *> &filterList)
+//{
+//	// TODO: Not implemented yet!
+//}
 
 // void FilterChain::setFilters(const QList<Skipable2d *> &filterList)
 //{

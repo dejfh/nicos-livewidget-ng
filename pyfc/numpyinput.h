@@ -32,10 +32,8 @@ public:
 
 		hlp::python::EnsureGil gil;
 
-		if (data != nullptr)
-			Py_DECREF(data);
-		if (m_current != nullptr)
-			Py_DECREF(m_current);
+		Py_XDECREF(data);
+		Py_XDECREF(m_current);
 	}
 
 	PyObject *data() const
@@ -46,6 +44,7 @@ public:
 			return nullptr;
 
 		hlp::python::EnsureGil gil;
+
 		Py_INCREF(data);
 		return data;
 	}
@@ -64,8 +63,7 @@ public:
 			guard.data() = data;
 		}
 
-		if (toDecrease != nullptr)
-			Py_DECREF(toDecrease);
+		Py_XDECREF(toDecrease);
 	}
 
 	// DataFilter interface
@@ -74,13 +72,11 @@ public:
 	{
 		{
 			hlp::python::EnsureGil gil;
-			if (m_current != nullptr)
-				Py_DECREF(m_current); // Decrease outside of lock! May block.
+			Py_XDECREF(m_current); // Decrease outside of lock! May block.
 			{
 				auto guard = m_data.lockConst();
 				m_current = guard.data();
-				if (m_current != nullptr)
-					Py_INCREF(m_current); // Increase inside of lock! Must not block. Ref may decrease outside lock.
+				Py_XINCREF(m_current); // Increase inside of lock! Ref may decrease immediately after unlock. Incref does not block.
 			}
 		}
 		progress.throwIfCancelled();

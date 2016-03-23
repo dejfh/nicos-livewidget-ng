@@ -1,6 +1,6 @@
 TEMPLATE = lib
 TARGET = pyimageplotwidget
-CONFIG += shared
+CONFIG += staticlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

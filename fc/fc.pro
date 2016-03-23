@@ -5,6 +5,10 @@ CONFIG += staticlib
 
 include(../defaults.prf)
 
+include(../openmp.prf)
+include(../fits/FitsHelper.pri)
+include(../ndimdata/NDimData.pri)
+
 SOURCES += \
     validation/qtvalidator.cpp
 
@@ -15,11 +19,6 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
-
-include(../openmp.prf)
-
-include(../fits/FitsHelper.pri)
-include(../ndimdata/NDimData.pri)
 
 HEADERS += \
     $$PWD/filter.h \

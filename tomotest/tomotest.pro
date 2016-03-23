@@ -4,10 +4,11 @@ CONFIG += console
 CONFIG -= app_bundle
 QT += opengl
 
-LIBS *= -ltomography
-LIBS *= -lfilterchain
-
 include(../defaults.prf)
+
+LIBS += -ltomography
+LIBS += -lfilterchain
+
 include(../openmp.prf)
 include(../cfitsio.prf)
 

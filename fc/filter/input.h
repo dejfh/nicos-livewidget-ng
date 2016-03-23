@@ -17,25 +17,24 @@ namespace filter
 {
 
 template <typename _ElementType, size_t _Dimensionaltiy>
-class Input : public FilterBase, public virtual DataFilter<_ElementType, _Dimensionaltiy>
+class Input : public FilterBase, public virtual DataFilter<_ElementType, _Dimensionaltiy>, public virtual Validatable
 {
 public:
 	using ElementType = _ElementType;
 	static const size_t Dimensionality = _Dimensionaltiy;
 
 private:
-	mutable bool m_hasNewData;
 	mutable hlp::Threadsafe<Container<ElementType, Dimensionality>> m_newData;
 	mutable Container<ElementType, Dimensionality> m_useableData;
 
 public:
 	Input()
-		: m_hasNewData(false)
 	{
 	}
 
 	void setData(Container<ElementType, Dimensionality> data)
 	{
+		this->invalidate();
 		auto guard = m_newData.lock();
 		if (data.ownsData())
 			guard.data() = std::move(data);
@@ -46,23 +45,22 @@ public:
 				ndim::copy_omp(data.constData(), guard->mutableData());
 			}
 		}
-		m_hasNewData = true;
 	}
 
 private:
 	void prepareData() const
 	{
 		auto guard = m_newData.lock();
-		if (!m_hasNewData)
+		if (!guard.data().hasData())
 			return;
 		m_useableData = std::move(guard.data());
-		m_hasNewData = false;
 	}
 
 	// DataFilter interface
 public:
 	virtual ndim::sizes<Dimensionality> prepare(PreparationProgress &progress) const override
 	{
+		progress.appendValidatable(std::shared_ptr<const Validatable>(this->shared_from_this(), this));
 		prepareData();
 		progress.throwIfCancelled();
 		return m_useableData.layout().sizes;
@@ -71,7 +69,22 @@ public:
 		ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const override
 	{
 		hlp::unused(progress, recycle);
-		return fc::makeConstRefContainer(m_useableData.constData());
+		return m_useableData.constData();
+	}
+
+	// Validatable interface
+public:
+	virtual void prepareValidation(PreparationProgress &progress) const override
+	{
+		this->prepare(progress);
+	}
+	virtual void validate(ValidationProgress &progress) const override
+	{
+		this->getData(progress, nullptr);
+	}
+	virtual bool isValid() const override
+	{
+		return !m_newData.lockConst().data().hasData();
 	}
 };
 

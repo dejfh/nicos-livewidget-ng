@@ -29,16 +29,24 @@ class MainWindow(QMainWindow):
         filterChain = FilterChain(self)
         self.fc = filterChain
 
-        data = numpy.identity(200)
-        data = numpy.array(data, dtype='f')
-        print data
-        # filterChain.setInput(data)
+        data1 = numpy.identity(3)
+        data1 = numpy.array(data1, dtype='f')
+
+        di = [[1,1,1],[1,1,1],[1,5,1]]
+
+        ob = [[5,5,5],[9,9,9],[5,9,5]]
+
+        im = [[5,3,4],[1,5,7],[5,7,4]]
+
+        filterChain.setInput(im)
+        filterChain.setDarkImage(di)
+        filterChain.setOpenBeam(ob)
 
         # filterChain.setInputFitsFile('/home/felix/Projekte/daten/lava/raw/seismolava64__000.000.fits')
 
-        filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
-        filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
-        filterChain.setOpenBeamFitsFile('C:/Dev/huge data/Tomography/lava/openbeam/ob_seismolava64__1.fits')
+        # filterChain.setInputFitsFile('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
+        # filterChain.setDarkImageFitsFile('C:/Dev/huge data/Tomography/lava/darkimage/di_seismolava64__1.fits')
+        # filterChain.setOpenBeamFitsFile('C:/Dev/huge data/Tomography/lava/openbeam/ob_seismolava64__1.fits')
 
         # filters = [ NoopFilter2d(), NoopFilter2d(), NoopFilter2d() ]
         # filterChain.setFilters(filters)

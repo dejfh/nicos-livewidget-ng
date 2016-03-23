@@ -36,6 +36,7 @@ public:
 	}
 
 	Container(const Container<ElementType, Dimensionality> &other) = delete;
+
 	Container(Container<ElementType, Dimensionality> &&other)
 		: m_ownership(std::move(other.m_ownership))
 		, m_mutableData(other.m_mutableData)
@@ -44,6 +45,20 @@ public:
 	{
 		other.m_mutableData = nullptr;
 		other.m_constData = nullptr;
+	}
+
+	Container(ndim::pointer<ElementType, Dimensionality> data)
+		: m_mutableData(data.data)
+		, m_constData(data.data)
+		, m_layout(data.getLayout())
+	{
+	}
+
+	Container(ndim::pointer<const ElementType, Dimensionality> data)
+		: m_mutableData(nullptr)
+		, m_constData(data.data)
+		, m_layout(data.getLayout())
+	{
 	}
 
 	template <size_t OtherDimensionality>
@@ -55,6 +70,7 @@ public:
 	}
 
 	Container<ElementType, Dimensionality> &operator=(const Container<ElementType, Dimensionality> &other) = delete;
+
 	Container<ElementType, Dimensionality> &operator=(Container<ElementType, Dimensionality> &&other)
 	{
 		this->m_ownership = std::move(other.m_ownership);

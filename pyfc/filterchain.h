@@ -7,8 +7,6 @@
 #include <QVector>
 #include <QPixmap>
 
-#include "skipable2d.h"
-
 #include "fc/validation/qtvalidator.h"
 
 #include "fc/chains/pixmapoutput.h"
@@ -68,7 +66,7 @@ public slots:
 	void setOpenBeamFitsFile(const QString &filename);
 	void setOpenBeamFitsFiles(const QStringList &filenames);
 
-	void setFilters(const QVector<Skipable2d *> &filterList);
+//	void setFilters(const QVector<Skipable2d *> &filterList);
 
 	void setUseColor(bool useColor);
 	void setInvert(bool invert);

@@ -3,10 +3,12 @@ TARGET = pyfctest
 QT       += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-LIBS += -lpyfilterchain -lpyimageplotwidget
-
 include(../defaults.prf)
+
+LIBS *= -lpyimageplotwidget -lpyfilterchain -lfilterchain -lpython2.7 -lqwt
+
 include(../openmp.prf)
+include(../cfitsio.prf)
 
 SOURCES += main.cpp\
         mainwindow.cpp

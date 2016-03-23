@@ -33,9 +33,6 @@ else:
     qt_inc_dir = config.qt_inc_dir
     qt_lib_dir = config.qt_lib_dir
 
-# pyqwt_sip_flags = ['-t', 'Qwt_5_2_0']
-
-
 class moc_build_ext(sip_build_ext):
     '''Build with moc-generated files '''
 
@@ -67,44 +64,29 @@ class moc_build_ext(sip_build_ext):
         return ret
 
 extra_include_dirs = [".."]
-extra_libs = ["pyfilterchain"]
-extra_lib_dirs = ['C:/Dev/build/nicos-livewidget-ng-Desktop_Qt_4_8_7_msys64-Release/bin', '/home/felix/Projekte/build/nicos-livewidget-ng-Desktop_Qt4_8_6-Debug/bin/']
-
-"""if sys.platform == 'darwin':
-    extra_include_dirs = ["/usr/local/qwt/include", "/usr/local/cfitsio/include"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]
-    extra_lib_dirs = ["/usr/local/qwt/lib", "/usr/local/cfitsio/lib"]
-else:
-    extra_lib_dirs = []
-    dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
-    if dist == 'openSUSE':
-    extra_include_dirs = ["/usr/include/qwt5",
-                  "/usr/include/qwt",
-                  "/usr/include/libcfitsio0",
-                  "/usr/include/cfitsio"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]
-    elif dist in ['Ubuntu', 'LinuxMint', 'debian',]:
-    extra_include_dirs = ["/usr/include/qwt-qt4", "/usr/include/qwt"]
-    extra_libs = ["qwt-qt4", "cfitsio", "tiff"]
-    elif dist == 'CentOS':
-    extra_include_dirs = ["/usr/local/qwt5/include"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]
-    extra_lib_dirs.append("/usr/local/qwt5/lib")
-    elif dist == 'Fedora':
-    extra_include_dirs = ["/usr/include/qwt5-qt4", "/usr/include/cfitsio"]
-    extra_libs = ["qwt5-qt4", "cfitsio", "tiff"]
-    else:
-    print("WARNING: Don't know where to find Qwt headers and libraries "
-          "for your distribution")
-    # still try to build with usable defaults
-    extra_include_dirs = ["/usr/include/qwt5", "/usr/include/qwt"]
-    extra_libs = ["qwt", "cfitsio", "tiff"]"""
+extra_lib_dirs = [qt_lib_dir, './../out']
+extra_libs = ["pyfilterchain", "filterchain", "python2.7", "cfitsio"]
 
 extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
         for subdir in ['', 'QtCore', 'QtGui'])
-extra_libs.extend(['QtCore4', 'QtGui4'])
-# extra_libs.extend(['QtCore', 'QtGui'])
-extra_lib_dirs.append(qt_lib_dir)
+
+if sys.platform == 'darwin':
+    extra_libs.extend(['QtCore', 'QtGui'])
+    extra_include_dirs.append("/usr/local/cfitsio/include")
+elif sys.platform == 'win32':
+    extra_libs.extend(['QtCore4', 'QtGui4'])
+else:
+    extra_libs.extend(['QtCore', 'QtGui'])
+    dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
+    if dist == 'openSUSE':
+        extra_include_dirs.extend(["/usr/include/libcfitsio0", "/usr/include/cfitsio"])
+    elif dist == 'Fedora':
+        extra_include_dirs.append("/usr/include/cfitsio")
+    elif dist in ['Ubuntu', 'LinuxMint', 'debian', 'CentOS']:
+        pass
+    else:
+        print("WARNING: Don't know where to find headers and libraries for your distribution")
+        # still try to build with usable defaults
 
 sources = []
 
@@ -117,7 +99,8 @@ setup(
           include_dirs=['.'] + extra_include_dirs,
           library_dirs=extra_lib_dirs,
           libraries=extra_libs,
-                  extra_compile_args=['-std=c++11'],
+          extra_compile_args=['-std=c++11', '-fopenmp', '-Wall', '-Wextra', '-pedantic'],
+          extra_link_args=['-fopenmp'],
           ),
     ],
     cmdclass={'build_ext': moc_build_ext}
