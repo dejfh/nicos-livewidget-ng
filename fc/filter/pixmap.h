@@ -43,7 +43,7 @@ public:
 
 		return ndim::makeSizes();
 	}
-	Container<QImage> getData(ValidationProgress &progress, Container<QImage> *recycle) const
+	ndim::Container<QImage> getData(ValidationProgress &progress, ndim::Container<QImage> *recycle) const
 	{
 		using jfh::assert_cast;
 		using jfh::cast_over_void;
@@ -65,7 +65,7 @@ public:
 				dataPointer); // TODO: Currently does not use m_colormap. Introduce m_colormap.setRange(double, double)?
 		}
 
-		auto result = fc::makeMutableContainer(recycle);
+		auto result = ndim::makeMutableContainer(recycle);
 
 		result.mutableData().first() = std::move(image);
 

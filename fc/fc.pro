@@ -26,7 +26,6 @@ HEADERS += \
     $$PWD/validation/validator.h \
     $$PWD/validation/watcher.h \
     $$PWD/gethelper.h \
-    $$PWD/ndimcontainer.h \
     $$PWD/chains/fitspile.h \
     $$PWD/chains/darkimageopenbeam.h \
     $$PWD/chains/pixmapoutput.h \

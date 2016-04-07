@@ -49,18 +49,18 @@ public:
 
 		return hlp::array::select(sizes0, selectedDimensions);
 	}
-	Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
 		auto inputs = this->getPredecessorsData(progress, recycle);
-		Container<PredecessorElementType, PredecessorDimensionality> &input = std::get<0>(inputs);
+		ndim::Container<PredecessorElementType, PredecessorDimensionality> &input = std::get<0>(inputs);
 		auto inputPointer = input.constData();
 		auto selectedPointer = inputPointer.selectDimensions(selectedDimensions);
 
 		auto accumulateDimensions = hlp::array::invertSelection<PredecessorDimensionality>(selectedDimensions);
 		ndim::layout<DimensionalityDifference> accumulateLayout = inputPointer.getLayout().selectDimensions(accumulateDimensions);
 
-		Container<ResultElementType, ResultDimensionality> result = makeMutableContainer(selectedPointer.sizes, recycle);
+		ndim::Container<ResultElementType, ResultDimensionality> result = ndim::makeMutableContainer(selectedPointer.sizes, recycle);
 
 		auto resultPointer = result.mutableData();
 

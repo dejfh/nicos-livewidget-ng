@@ -96,8 +96,8 @@ public:
 		hlp::notNull(predecessor);
 		return predecessor->prepare(progress);
 	}
-	virtual Container<ElementType, Dimensionality> getData(
-		ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		auto predecessor = selectedPredecessor();
 		hlp::notNull(predecessor);

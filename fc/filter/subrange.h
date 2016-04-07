@@ -38,9 +38,9 @@ public:
 		return this->range.sizes;
 	}
 
-	Container<ElementType, Dimensionality> getData(ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const
+	ndim::Container<ElementType, Dimensionality> getData(ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const
 	{
-		Container<ElementType, Dimensionality> result = std::get<0>(this->getPredecessorsData(progress, recycle));
+		ndim::Container<ElementType, Dimensionality> result = std::get<0>(this->getPredecessorsData(progress, recycle));
 		if (result.isMutable())
 			result.changePointer(result.mutableData().selectedRange(range));
 		else

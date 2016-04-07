@@ -22,12 +22,12 @@ struct PerElementContainerOperation {
 	{
 	}
 
-	Container<ResutElementType, Dimensionality> operator()(
-		Container<ResutElementType, Dimensionality> *recycle, Container<PredecessorElementTypes, Dimensionality>... inputs) const
+	ndim::Container<ResutElementType, Dimensionality> operator()(
+		ndim::Container<ResutElementType, Dimensionality> *recycle, ndim::Container<PredecessorElementTypes, Dimensionality>... inputs) const
 	{
-		using ContainerType = Container<typename std::result_of<ElementOperationType(PredecessorElementTypes...)>::type, Dimensionality>;
+		using ContainerType = ndim::Container<typename std::result_of<ElementOperationType(PredecessorElementTypes...)>::type, Dimensionality>;
 		auto &input0 = std::get<0>(std::tie(inputs...));
-		ContainerType result = fc::makeMutableContainer(input0.layout().sizes, recycle);
+		ContainerType result = ndim::makeMutableContainer(input0.layout().sizes, recycle);
 #pragma omp parallel
 		{
 			ndim::transform_omp(result.mutableData(), m_elementOperation, std::make_tuple(inputs.constData()...));

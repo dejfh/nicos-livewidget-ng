@@ -10,8 +10,6 @@
 #include "variadic.h"
 #include "safecast.h"
 
-#include "fc/ndimcontainer.h"
-
 /*!
  * \ingroup Filter
  * @{

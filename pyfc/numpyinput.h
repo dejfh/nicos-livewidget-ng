@@ -89,8 +89,8 @@ public:
 		return sizes;
 	}
 
-	virtual fc::Container<ElementType, Dimensionality> getData(
-		fc::ValidationProgress &progress, fc::Container<ElementType, Dimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		fc::ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		hlp::unused(progress, recycle);
 
@@ -104,7 +104,7 @@ public:
 		ElementType *data = static_cast<ElementType *>(PyArray_DATA(array));
 
 		ndim::pointer<const ElementType, Dimensionality> ptr(data, shape, byte_strides);
-		return fc::makeConstRefContainer(ptr);
+		return ndim::makeConstRefContainer(ptr);
 	}
 };
 

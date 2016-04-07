@@ -79,15 +79,15 @@ public:
 		return hlp::array::insert(sizes, insertDimension, size_t(predecessors.size()));
 	}
 
-	virtual Container<ElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ElementType, ResultDimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, ResultDimensionality> *recycle) const override
 	{
 		auto predecessors = this->predecessors();
 		size_t insertDimension = this->m_insertDimension;
 		progress.throwIfCancelled();
 
-		Container<ElementType, ResultDimensionality> result =
-			fc::makeMutableContainer(hlp::array::insert(m_predecessorSizes, insertDimension, size_t(predecessors.size())), recycle);
+		ndim::Container<ElementType, ResultDimensionality> result =
+			ndim::makeMutableContainer(hlp::array::insert(m_predecessorSizes, insertDimension, size_t(predecessors.size())), recycle);
 		ndim::pointer<ElementType, ResultDimensionality> data = result.mutableData();
 
 		size_t index = 0;

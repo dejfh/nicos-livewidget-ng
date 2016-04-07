@@ -41,7 +41,7 @@ public:
 
 		return ndim::Sizes<0>();
 	}
-	Container<ndimdata::DataStatistic, 0> getData(ValidationProgress &progress, Container<ndimdata::DataStatistic, 0> *recycle) const
+	ndim::Container<ndimdata::DataStatistic, 0> getData(ValidationProgress &progress, ndim::Container<ndimdata::DataStatistic, 0> *recycle) const
 	{
 		auto input = std::get<0>(this->getPredecessorsData(progress));
 
@@ -50,7 +50,7 @@ public:
 
 		// TODO: ndimdata::analyze needs contiguous data. Change ndimdata::analyze.
 
-		Container<PredecessorElementType, PredecessorDimensionality> contiguousBuffer;
+		ndim::Container<PredecessorElementType, PredecessorDimensionality> contiguousBuffer;
 		ndim::pointer<PredecessorElementType, PredecessorDimensionality> mutableData;
 
 		mutableData = input.mutableData();
@@ -64,7 +64,7 @@ public:
 			}
 		}
 
-		auto result = fc::makeMutableContainer(recycle);
+		auto result = ndim::makeMutableContainer(recycle);
 		ndimdata::DataStatistic &stat = result.mutableData().first();
 
 		ndimdata::analyze(mutableData.data, mutableData.size(), stat, roiRatio, displayRatio, binCount, progress);

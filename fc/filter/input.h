@@ -24,22 +24,22 @@ public:
 	static const size_t Dimensionality = _Dimensionaltiy;
 
 private:
-	mutable hlp::Threadsafe<Container<ElementType, Dimensionality>> m_newData;
-	mutable Container<ElementType, Dimensionality> m_useableData;
+	mutable hlp::Threadsafe<ndim::Container<ElementType, Dimensionality>> m_newData;
+	mutable ndim::Container<ElementType, Dimensionality> m_useableData;
 
 public:
 	Input()
 	{
 	}
 
-	void setData(Container<ElementType, Dimensionality> data)
+	void setData(ndim::Container<ElementType, Dimensionality> data)
 	{
 		this->invalidate();
 		auto guard = m_newData.lock();
 		if (data.ownsData())
 			guard.data() = std::move(data);
 		else {
-			guard.data() = fc::makeMutableContainer(data.layout().sizes, &guard.data());
+			guard.data() = ndim::makeMutableContainer(data.layout().sizes, &guard.data());
 #pragma omp parallel
 			{
 				ndim::copy_omp(data.constData(), guard->mutableData());
@@ -65,8 +65,8 @@ public:
 		progress.throwIfCancelled();
 		return m_useableData.layout().sizes;
 	}
-	virtual Container<ElementType, Dimensionality> getData(
-		ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		hlp::unused(progress, recycle);
 		return m_useableData.constData();

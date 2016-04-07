@@ -66,16 +66,16 @@ public:
 		return hlp::array::select(predecessorSizes, resultDimensions);
 	}
 
-	Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
 		auto container = this->getPredecessorsData(progress, (void *)nullptr);
 
-		Container<ElementType, PredecessorDimensionality> &input = std::get<0>(container);
+		ndim::Container<ElementType, PredecessorDimensionality> &input = std::get<0>(container);
 		ndim::pointer<const ElementType, PredecessorDimensionality> constData = input.constData();
 		ndim::pointer<ElementType, PredecessorDimensionality> mutableData;
 
-		Container<ElementType, PredecessorDimensionality> temp;
+		ndim::Container<ElementType, PredecessorDimensionality> temp;
 		ndim::Sizes<MedianDimensionality> medianDimensions = hlp::array::invertSelection<PredecessorDimensionality>(resultDimensions);
 
 		if (input.isMutable() && constData.selectDimensions(medianDimensions).isContiguous())
@@ -89,8 +89,8 @@ public:
 			ndim::copy(constData, mutableData);
 		}
 
-		Container<ElementType, ResultDimensionality> result =
-			fc::makeMutableContainer(constData.sizes.selectDimensions(resultDimensions), recycle);
+		ndim::Container<ElementType, ResultDimensionality> result =
+			ndim::makeMutableContainer(constData.sizes.selectDimensions(resultDimensions), recycle);
 
 		ndim::sizes<MedianDimensionality> medianSizes = constData.sizes.selectDimensions(medianDimensions);
 

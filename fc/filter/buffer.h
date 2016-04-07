@@ -31,7 +31,7 @@ public:
 protected:
 	hlp::Threadsafe<std::shared_ptr<const DataFilter<ElementType, Dimensionality>>> m_predecessor;
 
-	mutable Container<ElementType, Dimensionality> m_data;
+	mutable ndim::Container<ElementType, Dimensionality> m_data;
 	mutable std::atomic<bool> m_isValid;
 
 public:
@@ -80,7 +80,7 @@ public:
 		hlp::notNull(predecessor);
 		progress.throwIfCancelled();
 		ndim::sizes<Dimensionality> sizes = hlp::notNull(predecessor)->prepare(progress);
-		m_data.setMutablePointer(ndim::pointer<ElementType, Dimensionality>(nullptr, sizes));
+		m_data = ndim::pointer<ElementType, Dimensionality>(nullptr, sizes);
 		progress.appendValidatable(std::shared_ptr<const Validatable>(this->shared_from_this(), this));
 	}
 	virtual void validate(ValidationProgress &progress) const override
@@ -105,12 +105,12 @@ public:
 		this->prepareValidation(progress);
 		return m_data.layout().sizes;
 	}
-	virtual Container<ElementType, Dimensionality> getData(
-		ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		hlp::unused(recycle);
 		this->validate(progress);
-		return fc::makeConstRefContainer(m_data.constData());
+		return ndim::makeConstRefContainer(m_data.constData());
 	}
 };
 

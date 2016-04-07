@@ -40,17 +40,18 @@ public:
 		return hlp::array::insert(sizes, extendSizes, extendDimensions);
 	}
 
-	Container<ElementType, ResultDimensionality> getData(ValidationProgress &progress, Container<ElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, ResultDimensionality> *recycle) const
 	{
-		fc::Container<ElementType, PredecessorDimensionality> temp;
+		ndim::Container<ElementType, PredecessorDimensionality> temp;
 		if (recycle)
-			temp.setOwnership(std::move(*recycle));
-		Container<ElementType, PredecessorDimensionality> input = std::get<0>(this->getPredecessorsData(progress, &temp));
+			temp.swapOwnership(*recycle);
+		ndim::Container<ElementType, PredecessorDimensionality> input = std::get<0>(this->getPredecessorsData(progress, &temp));
 		if (recycle)
-			recycle->setOwnership(std::move(temp));
+			recycle->swapOwnership(temp);
 
-		Container<ElementType, ResultDimensionality> result(input.takeOwnership());
-		result.setConstPointer(input.constData().addDimensions(extendDimensions, extendSizes));
+		ndim::Container<ElementType, ResultDimensionality> result = input.constData().addDimensions(extendDimensions, extendSizes);
+		result.swapOwnership(input);
 
 		return result;
 	}

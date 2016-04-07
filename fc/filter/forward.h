@@ -43,8 +43,8 @@ public:
 		return predecessor->prepare(progress);
 	}
 
-	virtual Container<ElementType, Dimensionality> getData(
-		ValidationProgress &progress, Container<ElementType, Dimensionality> *recycle) const override
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		auto predecessor = this->predecessor();
 		return predecessor->getData(progress, recycle);

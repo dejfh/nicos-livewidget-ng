@@ -67,15 +67,15 @@ public:
 		return sizes;
 	}
 
-	Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
 		progress.throwIfCancelled();
 
 		fitshelper::FitsHelper fits(filename);
 		ndim::sizes<ResultDimensionality> sizes = isRangeSet ? range.sizes : fits.dimensions<ResultDimensionality>();
 
-		Container<ResultElementType, ResultDimensionality> result = fc::makeMutableContainer(sizes, recycle);
+		ndim::Container<ResultElementType, ResultDimensionality> result = ndim::makeMutableContainer(sizes, recycle);
 		ndim::pointer<ResultElementType, ResultDimensionality> dataPointer = result.mutableData();
 
 		if (isRangeSet)
@@ -164,12 +164,12 @@ public:
 		return ndim::sizes<0>();
 	}
 
-	Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
 		fitshelper::FitsHelper fits(filename);
 
-		Container<QMap<QString, QString>> result = fc::makeMutableContainer(ndim::Sizes<0>(), recycle);
+		ndim::Container<QMap<QString, QString>> result = ndim::makeMutableContainer(ndim::Sizes<0>(), recycle);
 
 		result.mutableData().first() = fits.readUserKeys();
 

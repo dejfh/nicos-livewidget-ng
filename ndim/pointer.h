@@ -200,6 +200,12 @@ pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const Sizes
 	return pointer<ElementType, Dimensionality>(data, sizes);
 }
 
+template <typename ElementType>
+pointer<ElementType, 0> make_pointer(ElementType &data)
+{
+    return pointer<ElementType, 0>(&data, sizes<0>());
+}
+
 template <typename _T, typename... SizesTypes>
 pointer<_T, 1 + sizeof...(SizesTypes)> make_ptr_contiguous(_T *data, size_t size0, SizesTypes... sizeN)
 {

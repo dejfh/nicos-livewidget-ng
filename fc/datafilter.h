@@ -3,6 +3,8 @@
 
 #include "fc/filter.h"
 
+#include "ndim/container.h"
+
 namespace fc
 {
 
@@ -26,8 +28,8 @@ public:
 	 * \param progress Collects progress information and notifies about cancelation.
 	 * \param result The container to receive the data. If the container size does not match the needed size, the container will be resized.
 	 */
-	virtual Container<_ElementType, _Dimensionality> getData(
-		ValidationProgress &progress, Container<_ElementType, _Dimensionality> *recycle = nullptr) const = 0;
+	virtual ndim::Container<_ElementType, _Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<_ElementType, _Dimensionality> *recycle = nullptr) const = 0;
 };
 
 template <typename _ElementType, size_t _Dimensionality = 0>

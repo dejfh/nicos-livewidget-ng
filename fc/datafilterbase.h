@@ -17,7 +17,7 @@ public:
 	using BaseType = FilterHandlerBase<PredecessorTypes...>;
 	using PredecessorTuple = typename BaseType::PredecessorTuple;
 
-	using ContainerTuple = std::tuple<Container<typename PredecessorTypes::ElementType, PredecessorTypes::Dimensionality>...>;
+	using ContainerTuple = std::tuple<ndim::Container<typename PredecessorTypes::ElementType, PredecessorTypes::Dimensionality>...>;
 
 private:
 	class PrepareFunctor
@@ -53,10 +53,10 @@ private:
 		}
 
 		template <typename ElementType, size_t Dimensionality>
-		void operator()(
-			const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor, Container<ElementType, Dimensionality> &result) const
+		void operator()(const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor,
+			ndim::Container<ElementType, Dimensionality> &result) const
 		{
-			Container<ElementType, Dimensionality> *recycle = nullptr;
+			ndim::Container<ElementType, Dimensionality> *recycle = nullptr;
 			hlp::assignIfAssignable(recycle, m_recycle);
 			result = predecessor->getData(m_progress, recycle);
 		}
@@ -93,7 +93,7 @@ public:
 	using ResultElementType = _ResultElementType;
 	static const size_t ResultDimensionality = _ResultDimensionality;
 	using DataOperationType = _DataOperationType;
-	using ResultContainerType = Container<ResultElementType, ResultDimensionality>;
+	using ResultContainerType = ndim::Container<ResultElementType, ResultDimensionality>;
 
 public:
 	DataOperationType dataOperation;
@@ -113,12 +113,12 @@ public:
 		return std::get<0>(sizes);
 	}
 
-	Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
 		auto container = this->getPredecessorsData(progress, recycle);
 		auto args = std::tuple_cat(std::make_tuple(recycle), std::move(container));
-		Container<ResultElementType, ResultDimensionality> result =
+		ndim::Container<ResultElementType, ResultDimensionality> result =
 			hlp::variadic::_callR(dataOperation, std::move(args), hlp::variadic::makeSequence(args));
 		progress.advanceProgress(result.layout().size());
 		progress.advanceStep();
@@ -157,8 +157,8 @@ public:
 
 		return operation.prepare(progress);
 	}
-	virtual Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const override
+	virtual ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const override
 	{
 		HandlerType operation = this->m_handler.get();
 		progress.throwIfCancelled();

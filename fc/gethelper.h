@@ -15,8 +15,8 @@ template <typename ElementType, size_t Dimensionality>
 void getData(ValidationProgress &progress, const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor,
 	ndim::pointer<ElementType, Dimensionality> data)
 {
-	Container<ElementType, Dimensionality> container;
-	container.setMutablePointer(data);
+	ndim::Container<ElementType, Dimensionality> container;
+	container = data;
 	container = predecessor->getData(progress, &container);
 	if (data.data != container.constData().data) {
 #pragma omp parallel
@@ -27,13 +27,14 @@ void getData(ValidationProgress &progress, const std::shared_ptr<const DataFilte
 }
 
 template <typename ElementType, size_t Dimensionality>
-Container<ElementType, Dimensionality> getMutableData(ValidationProgress &progress,
-	const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor, Container<ElementType, Dimensionality> *recycle = nullptr)
+ndim::Container<ElementType, Dimensionality> getMutableData(ValidationProgress &progress,
+	const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor,
+	ndim::Container<ElementType, Dimensionality> *recycle = nullptr)
 {
 	auto data = predecessor->getData(progress, recycle);
 	if (data.isMutable())
 		return data;
-	auto copy = fc::makeMutableContainer(data.layout().sizes, recycle);
+	auto copy = ndim::makeMutableContainer(data.layout().sizes, recycle);
 #pragma omp parallel
 	{
 		ndim::copy_omp(data, copy);
@@ -44,8 +45,7 @@ Container<ElementType, Dimensionality> getMutableData(ValidationProgress &progre
 template <typename ElementType>
 void getData(ValidationProgress &progress, const std::shared_ptr<const DataFilter<ElementType>> &predecessor, ElementType &data)
 {
-	Container<ElementType> container;
-	container.setMutablePointer(ndim::make_pointer(&data, ndim::Sizes<0>()));
+	ndim::Container<ElementType> container(ndim::make_pointer(data));
 	container = predecessor->getData(progress, &container);
 	if (container.constData().data != &data) {
 		if (container.isMutable())

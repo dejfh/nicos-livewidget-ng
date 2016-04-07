@@ -51,11 +51,11 @@ public:
 			hlp::notNull(predecessor.get())->prepare(progress);
 		return ndim::makeSizes();
 	}
-	virtual Container<QMap<KeyType, ValueType>> getData(ValidationProgress &progress, Container<QMap<KeyType, ValueType>> *recycle) const override
+	virtual ndim::Container<QMap<KeyType, ValueType>> getData(ValidationProgress &progress, ndim::Container<QMap<KeyType, ValueType>> *recycle) const override
 	{
 		auto predecessors = this->predecessors();
 		progress.throwIfCancelled();
-		Container<QMap<KeyType, ValueType>> result = fc::makeMutableContainer(recycle);
+		ndim::Container<QMap<KeyType, ValueType>> result = ndim::makeMutableContainer(recycle);
 		QMap<KeyType, ValueType> &resultMap = result.mutableData().first();
 		if (predecessors.isEmpty()) {
 			resultMap.clear();

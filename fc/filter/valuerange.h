@@ -32,7 +32,7 @@ public:
 		return ndim::makeSizes();
 	}
 
-	Container<std::pair<double, double>> getData(ValidationProgress &progress, Container<std::pair<double, double>> *recycle) const
+	ndim::Container<std::pair<double, double>> getData(ValidationProgress &progress, ndim::Container<std::pair<double, double>> *recycle) const
 	{
 		progress.throwIfCancelled();
 
@@ -50,7 +50,7 @@ public:
 		if (invert)
 			std::swap(range.first, range.second);
 
-		auto result = fc::makeMutableContainer(ndim::Sizes<0>(), recycle);
+		auto result = ndim::makeMutableContainer(ndim::Sizes<0>(), recycle);
 		result.mutableData().first() = range;
 
 		return result;

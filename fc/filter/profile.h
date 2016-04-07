@@ -38,7 +38,7 @@ public:
 		progress.addStep(count * lineWidth, description);
 		return ndim::makeSizes(count);
 	}
-	Container<ElementType, 1> getData(ValidationProgress &progress, Container<ElementType, 1> *recycle) const
+	ndim::Container<ElementType, 1> getData(ValidationProgress &progress, ndim::Container<ElementType, 1> *recycle) const
 	{
 		QPointF start = line.p1() - QPointF(.5, .5);
 		QPointF end = (line.p2() - QPointF(.5, .5));
@@ -63,7 +63,7 @@ public:
 
 			QPointF posSide = start - (lineWidth - 1) / 2.0 * dirO;
 
-			Container<float, 1> result = fc::makeMutableContainer(ndim::Sizes<1>{count}, recycle);
+			ndim::Container<float, 1> result = ndim::makeMutableContainer(ndim::Sizes<1>{count}, recycle);
 			ndim::iterator<float, 1> it(result.mutableData());
 
 			for (size_t i = 0; i < count; ++i, posSide += dirL, ++it) {

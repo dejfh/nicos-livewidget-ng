@@ -55,41 +55,41 @@ public:
 		return sizes;
 	}
 
-	virtual Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, Container<ResultElementType, ResultDimensionality> *recycle) const
+	virtual ndim::Container<ResultElementType, ResultDimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
 	{
-		Container<PredecessorElementType, PredecessorDimensionality> *predecessorRecycle = nullptr;
+		ndim::Container<PredecessorElementType, PredecessorDimensionality> *predecessorRecycle = nullptr;
 		hlp::assignIfAssignable(predecessorRecycle, recycle);
 
-		Container<ResultElementType, ResultDimensionality> data = this->predecessor()->getData(progress, recycle);
+		ndim::Container<ResultElementType, ResultDimensionality> data = this->predecessor()->getData(progress, recycle);
 		ndim::pointer<const ResultElementType, ResultDimensionality> data_ptr = data.constData();
 		bool hasDarkImage = this->darkImage();
 		bool hasOpenBeam = this->openBeam();
-		Container<ResultElementType, ResultDimensionality> result;
+		ndim::Container<ResultElementType, ResultDimensionality> result;
 		if (data.isMutable())
 			result = std::move(data);
 		else
-			result = fc::makeMutableContainer(data_ptr.sizes, recycle);
+			result = ndim::makeMutableContainer(data_ptr.sizes, recycle);
 		ndim::pointer<ResultElementType, ResultDimensionality> result_ptr = result.mutableData();
 
 		if (hasDarkImage && hasOpenBeam) {
 			auto op = [](float v, float d, float o) { return (v - d) / (o - d); };
-			Container<PredecessorElementType, PredecessorDimensionality> darkImage = this->darkImage()->getData(progress, predecessorRecycle);
-			Container<PredecessorElementType, PredecessorDimensionality> openBeam = this->openBeam()->getData(progress, predecessorRecycle);
+			ndim::Container<PredecessorElementType, PredecessorDimensionality> darkImage = this->darkImage()->getData(progress, predecessorRecycle);
+			ndim::Container<PredecessorElementType, PredecessorDimensionality> openBeam = this->openBeam()->getData(progress, predecessorRecycle);
 #pragma omp parallel
 			{
 				ndim::transform_omp(result_ptr, op, data_ptr, darkImage.constData(), openBeam.constData());
 			}
 		} else if (hasDarkImage) {
 			auto op = [](float v, float d) { return v - d; };
-			Container<PredecessorElementType, PredecessorDimensionality> darkImage = this->darkImage()->getData(progress, predecessorRecycle);
+			ndim::Container<PredecessorElementType, PredecessorDimensionality> darkImage = this->darkImage()->getData(progress, predecessorRecycle);
 #pragma omp parallel
 			{
 				ndim::transform_omp(result_ptr, op, data_ptr, darkImage.constData());
 			}
 		} else if (hasOpenBeam) {
 			auto op = [](float v, float o) { return v / o; };
-			Container<PredecessorElementType, PredecessorDimensionality> openBeam = this->openBeam()->getData(progress, predecessorRecycle);
+			ndim::Container<PredecessorElementType, PredecessorDimensionality> openBeam = this->openBeam()->getData(progress, predecessorRecycle);
 #pragma omp parallel
 			{
 				ndim::transform_omp(result_ptr, op, data_ptr, openBeam.constData());
