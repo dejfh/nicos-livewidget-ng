@@ -14,11 +14,13 @@ HEADERS += \
     $$PWD/shaders.h \
     $$PWD/sinogramfile.h \
     $$PWD/sinogramfileheader.h \
-    $$PWD/threadableglwidget.h
+    $$PWD/threadableglwidget.h \
+    tomography.h
 
 SOURCES += \
     $$PWD/findaxisofrotation.cpp \
     $$PWD/reconstructor.cpp \
     $$PWD/shaders.cpp \
     $$PWD/sinogramfile.cpp \
-    $$PWD/threadableglwidget.cpp
+    $$PWD/threadableglwidget.cpp \
+    tomography.cpp
