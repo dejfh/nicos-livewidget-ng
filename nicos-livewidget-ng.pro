@@ -9,7 +9,8 @@ SUBDIRS += \
     pyfc \
     pyipw \
     pydemo \
-    pyfctest
+    pyfctest \
+    pytomo
 
 fctest.depends = fc
 pyfc.depends = fc
@@ -17,3 +18,4 @@ pydemo.depends = pyfc pyipw
 tomotest.depends = tomo
 tomorun.depends = tomo
 pyfctest.depends = pyfc
+pytomo.depends = tomo

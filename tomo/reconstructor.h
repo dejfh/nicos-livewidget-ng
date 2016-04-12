@@ -45,25 +45,27 @@ private:
 	void acceptTestDirect();
 
 public:
-	explicit Reconstructor(QGLContext &context);
+	explicit Reconstructor(const QGLContext *glContext);
 	~Reconstructor();
 
-	void create(QGLContext &context);
 	void reset();
 
+	int sinogramResolution() const;
+	int reconstructionResolution() const;
+
 	void prepare(int resolution, int sinogram_capacity, float center);
-	void setOpenBeam(ndim::pointer<const quint16, 1> data);
-	void setSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles);
-	void appendSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles);
+	void setOpenBeam(ndim::pointer<const float, 1> data);
+	void setSinogram(ndim::pointer<const float, 2> data, ndim::pointer<const float, 1> angles);
+	void appendSinogram(ndim::pointer<const float, 2> data, ndim::pointer<const float, 1> angles);
 	void setReconstruction(ndim::pointer<const float, 2> data);
 
 	void guess();
 	bool step();
 	void clear();
 
-	void readTexture(const ndim::pointer<quint16, 2> data, ReconTextures texture);
-	void readTexture(const ndim::pointer<float, 2> data, ReconTextures texture);
-	void readReconstruction(const ndim::pointer<float, 2> data);
+	void readTexture(ndim::pointer<quint16, 2> data, ReconTextures texture);
+	void readTexture(ndim::pointer<float, 2> data, ReconTextures texture);
+	void readReconstruction(ndim::pointer<float, 2> data);
 
 	float stepSize() const;
 	void setStepSize(float value);

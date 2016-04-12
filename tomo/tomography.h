@@ -4,30 +4,50 @@
 #include "ndim/pointer.h"
 #include <memory>
 
-class QWidget;
+#include <atomic>
+#include <future>
+#include <mutex>
 
-namespace tomo {
+#include "ndim/container.h"
+
+class QGLWidget;
+
+namespace tomo
+{
 
 class Reconstructor;
 
 class Tomography
 {
+	std::unique_ptr<QGLWidget> m_glWidget;
+	std::unique_ptr<Reconstructor> m_reconstructor;
+
+	std::future<void> m_future;
+	std::atomic<bool> m_cancel;
+	std::mutex m_mutex;
+	bool m_makeGuess;
+
+	std::atomic<bool> m_reconstructionFilled;
+	std::atomic<bool> m_reconstructionRequested;
+	ndim::Container<float, 2> m_reconstruction;
+
 public:
-    Tomography(size_t sinogramResolution, size_t maxAngleCount, size_t reconstructionResolution);
+	Tomography(size_t sinogramResolution, size_t maxAngleCount, float center);
+	~Tomography();
 
-    void setDarkImage(ndim::pointer<const float, 1> darkImage);
-    void setOpenBeam(ndim::pointer<const float, 1> openBeam);
-    void appendSinogram(ndim::pointer<const std::int16_t, 2> sinogram, ndim::pointer<const float, 1> angles);
+	void setOpenBeam(ndim::pointer<const float, 1> openBeam);
+	void appendSinogram(ndim::pointer<const float, 2> sinogram, ndim::pointer<const float, 1> angles);
 
-    void run();
-    void stop();
-
-    void requestReconstruction();
-    void getReconstruction(ndim::pointer<float, 2> data);
+	void run();
+	void stop();
 
 private:
-    std::unique_ptr<QWidget> m_glWidget;
-    std::unique_ptr<Reconstructor> m_reconstructor;
+	void proc();
+
+public:
+	void requestReconstruction(ndim::Container<float, 2> *recycle);
+	bool reconstructionAvailable() const;
+	ndim::Container<float, 2> getReconstruction();
 };
 
 } // namespace tomo

@@ -15,7 +15,7 @@
 #include <QVector2D>
 #include <QTransform>
 
-#include <QGLBuffer>
+#include <QGLWidget>
 
 #include "helper/helper.h"
 
@@ -45,7 +45,6 @@ using GL::ProgramGroup;
 class Reconstructor::ReconstructorPrivate
 {
 public:
-	QGLContext &m_context;
 	QGLFunctions gl;
 
 	GL::ProgramGroup m_programs;
@@ -62,9 +61,8 @@ public:
 	float m_likelihood;
 	float m_likelihoodTest;
 
-	ReconstructorPrivate(QGLContext &context)
-		: m_context(context)
-		, gl(&context)
+	ReconstructorPrivate(const QGLContext *glContext)
+		: gl(glContext)
 		, m_programs(gl)
 	{
 	}
@@ -180,8 +178,8 @@ void Reconstructor::acceptTestDirect()
 	m->gradient_FromSinoAndSinoRecon();
 }
 
-Reconstructor::Reconstructor(QGLContext &context)
-	: m(new ReconstructorPrivate(context))
+Reconstructor::Reconstructor(const QGLContext *glContext)
+	: m(new ReconstructorPrivate(glContext))
 {
 	m->m_programs.createPrograms();
 }
@@ -189,12 +187,6 @@ Reconstructor::Reconstructor(QGLContext &context)
 Reconstructor::~Reconstructor()
 {
 	clear();
-}
-
-void Reconstructor::create(QGLContext &context)
-{
-	m.reset(new ReconstructorPrivate(context));
-	m->m_programs.createPrograms();
 }
 
 void Reconstructor::reset()
@@ -220,10 +212,8 @@ void Reconstructor::prepare(int resolution, int sinogram_capacity, float center)
 	GL::assert_glError();
 }
 
-void Reconstructor::setOpenBeam(ndim::pointer<const quint16, 1> data)
+void Reconstructor::setOpenBeam(ndim::pointer<const float, 1> data)
 {
-	GL::assert_glError();
-	m->m_context.makeCurrent();
 	GL::assert_glError();
 
 	assert(data.isContiguous()); // TODO: Use pixel buffers to allow other layout.
@@ -231,28 +221,26 @@ void Reconstructor::setOpenBeam(ndim::pointer<const quint16, 1> data)
 
 	glBindTexture(GL_TEXTURE_1D, m->m_programs.textures[GL::Tex_Intensity]);
 	GL::assert_glError();
-	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, m->m_resolutionSinogram, GL_RED, GL_UNSIGNED_SHORT, data.data);
+	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, m->m_resolutionSinogram, GL_RED, GL_FLOAT, data.data);
 	GL::assert_glError();
 	glBindTexture(GL_TEXTURE_1D, 0);
 	GL::assert_glError();
 }
 
 // angles in degrees
-void Reconstructor::setSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles)
+void Reconstructor::setSinogram(ndim::pointer<const float, 2> data, ndim::pointer<const float, 1> angles)
 {
 	m->m_filledSinogram = 0;
 	appendSinogram(data, angles);
 }
 
 // angles in degrees
-void Reconstructor::appendSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles)
+void Reconstructor::appendSinogram(ndim::pointer<const float, 2> data, ndim::pointer<const float, 1> angles)
 {
 	assert(data.height() == angles.size());
 	assert(data.width() == m->m_resolutionSinogram);
 	assert(m->m_filledSinogram + data.height() <= m->m_capacitySinogram);
 
-	m->m_context.makeCurrent();
-	GL::assert_glError();
 	size_t count = data.height();
 
 	GL::assert_glError();
@@ -274,7 +262,7 @@ void Reconstructor::appendSinogram(ndim::pointer<const quint16, 2> data, ndim::p
 		GL::assert_glError();
 
 		glBindTexture(GL_TEXTURE_2D, m->m_programs.textures[GL::Tex_SinoOrg]);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, m->m_filledSinogram, m->m_resolutionSinogram, GLsizei(count), GL_RED, GL_UNSIGNED_SHORT, 0);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, m->m_filledSinogram, m->m_resolutionSinogram, GLsizei(count), GL_RED, GL_FLOAT, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		unpackbuffer.release();
 	}
@@ -320,7 +308,6 @@ void Reconstructor::appendSinogram(ndim::pointer<const quint16, 2> data, ndim::p
 
 void Reconstructor::setReconstruction(ndim::pointer<const float, 2> data)
 {
-	m->m_context.makeCurrent();
 	m->m_stepSize = 1.f / m->m_resolutionReconstruction / 10.f;
 
 	assert(data.width() == data.height());
@@ -340,7 +327,6 @@ void Reconstructor::setReconstruction(ndim::pointer<const float, 2> data)
 
 void Reconstructor::guess()
 {
-	m->m_context.makeCurrent();
 	m->m_stepSize = 1.f / m->m_resolutionReconstruction / 10.f;
 
 	m->guess_toRecon_fromSinoOrg();

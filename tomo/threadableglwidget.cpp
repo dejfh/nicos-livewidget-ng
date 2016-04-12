@@ -15,11 +15,6 @@ tomo::ThreadableGLWidget::ThreadableGLWidget(const QGLFormat &format, QWidget *p
 {
 }
 
-const QGLContext *tomo::ThreadableGLWidget::context() const
-{
-	return QGLWidget::context();
-}
-
 void tomo::ThreadableGLWidget::paintEvent(QPaintEvent *)
 {
 }
