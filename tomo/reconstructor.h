@@ -20,6 +20,17 @@ class QThread;
 namespace tomo
 {
 
+/**
+ * @brief The Reconstructor class
+ * - Creates tomography image from sinogram.
+ * - Needs a QGLContext to work with
+ * - Designed to be used from a non-UI Thread
+ * - QGLContext must be made current by caller before all calls
+ * - Does one reconstruction step per call
+ *
+ * Usage:
+ *
+ */
 class Reconstructor
 {
 	class ReconstructorPrivate;
@@ -45,16 +56,13 @@ private:
 	void acceptTestDirect();
 
 public:
-	explicit Reconstructor(QGLContext &context);
+    explicit Reconstructor(const QGLContext &context);
 	~Reconstructor();
-
-	void create(QGLContext &context);
-	void reset();
 
 	void prepare(int resolution, int sinogram_capacity, float center);
 	void setOpenBeam(ndim::pointer<const quint16, 1> data);
-	void setSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles);
-	void appendSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<const hlp::FixedPoint<0x10000>, 1> angles);
+    void setSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<float, 1> angles);
+    void appendSinogram(ndim::pointer<const quint16, 2> data, ndim::pointer<float, 1> angles);
 	void setReconstruction(ndim::pointer<const float, 2> data);
 
 	void guess();
