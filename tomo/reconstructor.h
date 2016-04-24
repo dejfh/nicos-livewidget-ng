@@ -20,6 +20,17 @@ class QThread;
 namespace tomo
 {
 
+/**
+ * @brief The Reconstructor class
+ * - Creates tomography image from sinogram.
+ * - Needs a QGLContext to work with
+ * - Designed to be used from a non-UI Thread
+ * - QGLContext must be made current by caller before all calls
+ * - Does one reconstruction step per call
+ *
+ * Usage:
+ *
+ */
 class Reconstructor
 {
 	class ReconstructorPrivate;

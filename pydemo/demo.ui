@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>888</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLine">
@@ -114,6 +114,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btnPrint">
+       <property name="text">
+        <string>print</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QListWidget" name="listSourceFiles"/>
      </item>
     </layout>
@@ -183,8 +190,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>177</width>
-          <height>109</height>
+          <width>266</width>
+          <height>151</height>
          </rect>
         </property>
         <property name="sizePolicy">

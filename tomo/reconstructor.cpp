@@ -189,11 +189,6 @@ Reconstructor::~Reconstructor()
 	clear();
 }
 
-void Reconstructor::reset()
-{
-	m.reset();
-}
-
 void Reconstructor::prepare(int resolution, int sinogram_capacity, float center)
 {
 	m->m_resolutionSinogram = resolution;
