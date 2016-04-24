@@ -7,7 +7,7 @@ import sys
 import glob
 
 from PyQt4.QtCore import QObject, pyqtSlot
-from PyQt4.QtGui import QMainWindow, QApplication, QWidget, QPixmap
+from PyQt4.QtGui import QMainWindow, QApplication, QWidget, QPixmap, QPrinter, QPrintDialog, QPainter
 from PyQt4.uic import loadUi
 
 import numpy
@@ -66,6 +66,19 @@ class MainWindow(QMainWindow):
         filterChain.pixmapChanged.connect(self.imagewidget.setImage)
 
         filterChain.start()
+
+        def callback():
+            printer = QPrinter()
+            dialog = QPrintDialog(printer, self)
+            r = dialog.exec_()
+            if r != 1: return
+            painter = QPainter()
+            painter.begin(printer)
+            # painter.scale(3,3)
+            self.imagewidget.render(painter)
+            painter.end()
+
+        ui.btnPrint.clicked.connect(callback)
 
 if __name__ == '__main__':
 

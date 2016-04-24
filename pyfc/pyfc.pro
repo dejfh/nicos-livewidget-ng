@@ -18,7 +18,8 @@ HEADERS += \
     pyfc.h \
     filterchain.h \
     numpyinput.h \
-    filter2d.h
+    pyfilter.h \
+    pyinvokefilter.h
 
 DISTFILES += \
     pyfc.sip \
