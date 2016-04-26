@@ -24,6 +24,10 @@ using Sizes = std::array<size_t, Dimensionality>;
 template <size_t Dimensionality>
 using Strides = std::array<hlp::byte_offset_t, Dimensionality>;
 
+using IndicesVar = std::vector<size_t>;
+using SizesVar = std::vector<size_t>;
+using StridesVar = std::vector<hlp::byte_offset_t>;
+
 inline Indices<0> makeIndices()
 {
 	return Indices<0>();
@@ -60,6 +64,13 @@ size_t totalCount(Sizes<Dimensionality> sizes)
 		count *= size;
 	return count;
 }
+inline size_t toalCount(const SizesVar &sizes)
+{
+    size_t count = 1;
+    for (size_t size : sizes)
+        count *= size;
+    return count;
+}
 
 template <size_t Dimensionality>
 bool isEmpty(Sizes<Dimensionality> sizes)
@@ -68,6 +79,13 @@ bool isEmpty(Sizes<Dimensionality> sizes)
 		if (size == 0)
 			return true;
 	return false;
+}
+inline bool isEmpty(const SizesVar &sizes)
+{
+    for (size_t size : sizes)
+        if (size == 0)
+            return true;
+    return false;
 }
 
 template <size_t Dimensionality>
@@ -78,6 +96,14 @@ bool contains(Sizes<Dimensionality> sizes, Indices<Dimensionality> coords)
 			return false;
 	return true;
 }
+inline bool contains(const SizesVar &sizes, const IndicesVar coords)
+{
+    for (auto itSizes = sizes.cbegin(), endSizes = sizes.cend(), itCoords = coords.cbegin(), endCoords = coords.cend(); itSizes != endSizes && itCoords != endCoords; ++itSizes, ++itCoords)
+        if (*itSizes <= *itCoords)
+            return false;
+    return true;
+}
+
 template <size_t Dimensionality, typename... IndexTypes>
 bool contains(Sizes<Dimensionality> sizes, size_t coord0, IndexTypes... coordN)
 {
@@ -91,6 +117,29 @@ bool isVirtual(Strides<Dimensionality> strides)
         if (!stride)
 			return true;
 	return false;
+}
+inline bool isVirtual(const StridesVar &strides)
+{
+    for (auto stride : strides)
+        if (!stride)
+            return true;
+    return false;
+}
+
+template <size_t Dimensionality>
+hlp::byte_offset_t offsetOf(Strides<Dimensionality> strides, Indices<Dimensionality> coords) {
+    hlp::byte_offset_t offset(0);
+    for (auto itStrides= strides.cbegin(), endStrides = strides.cend(), itCoords = coords.cbegin(); itStrides != endStrides; ++itStrides, ++itCoords)
+        offset += *itStrides * *itCoords;
+    return offset;
+}
+inline hlp::byte_offset_t offsetOf(const StridesVar &strides, const IndicesVar &coords) {
+    hlp::byte_offset_t offset(0);
+    auto itStrides = strides.cbegin(), endStrides = strides.cend();
+    auto itCoords = coords.cbegin(), endCoords = coords.cend();
+    for (; itStrides  != endStrides && itCoords != endCoords; ++itStrides , ++itCoords)
+        offset += *itStrides * *itCoords;
+    return offset;
 }
 
 template <size_t _D>
@@ -236,6 +285,11 @@ hlp::byte_offset_t _indexOf_forward(const ndim::strides<_D> &strides, size_t coo
 {
 	return strides[_D - 1 - sizeof...(indices_t)] * coordinate + _indexOf_forward(strides, moreCoordinates...);
 }
+
+struct LayoutVar {
+    SizesVar sizes;
+    StridesVar strides;
+};
 
 template <size_t _D>
 struct layout {

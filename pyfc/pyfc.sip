@@ -12,35 +12,7 @@ void init_pyfc();
 init_pyfc();
 %End
 
-class Filter2d
-{
-%TypeHeaderCode
-#include "filter2d.h"
-%End
-
-private:
-	Filter2d();
-};
-
-class Skipable2d : public Filter2d
-{
-%TypeHeaderCode
-#include "skipable2d.h"
-%End
-
-private:
-	Skipable2d();
-};
-
-class NoopFilter2d : public Skipable2d
-{
-%TypeHeaderCode
-#include "noopfilter2d.h"
-%End
-
-public:
-	NoopFilter2d();
-};
+%Include pyfilter.sip
 
 class FilterChain : public QObject
 {

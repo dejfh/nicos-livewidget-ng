@@ -8,8 +8,19 @@
 namespace fc
 {
 
+template <typename _ElementType>
+class DataFilterVar : public virtual Predecessor
+{
+public:
+    using ElementType = _ElementType;
+
+    virtual ndim::SizesVar prepareVar(PreparationProgress &progress) const = 0;
+
+    virtual ndim::ContainerVar getDataVar(ValidationProgress &progress, ndim::ContainerBase *recycle = nullptr) const = 0;
+};
+
 template <typename _ElementType, size_t _Dimensionality = 0>
-class DataFilter : public virtual Predecessor
+class DataFilter : public DataFilterVar
 {
 public:
 	using ElementType = _ElementType;
@@ -30,6 +41,23 @@ public:
 	 */
 	virtual ndim::Container<_ElementType, _Dimensionality> getData(
 		ValidationProgress &progress, ndim::Container<_ElementType, _Dimensionality> *recycle = nullptr) const = 0;
+
+    // DataFilterVar interface
+public:
+    virtual ndim::SizesVar prepareVar(PreparationProgress &progress) const override
+    {
+        auto shape = this->prepare(progress);
+        return ndim::SizesVar(shape.cbegin(), shape.cend());
+    }
+    virtual ndim::ContainerVar getDataVar(ValidationProgress &progress, ndim::ContainerBase *recycle) const override
+    {
+        if (recycle) {
+            ndim::Container<Dimensionality> temp(std::move(*recycle));
+            return this->getData(progress, &temp);
+        }
+        else
+            return this->getData(progress);
+    }
 };
 
 template <typename _ElementType, size_t _Dimensionality = 0>

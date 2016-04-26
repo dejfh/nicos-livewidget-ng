@@ -16,9 +16,14 @@ public:
 
 protected:
     std::vector<ElementType> m_vector;
+    ElementType *m_mutableData;
+    const ElementType *m_constData;
 
 public:
-    ContainerBase() = default;
+    ContainerBase()
+        : m_mutableData(nullptr)
+        , m_constData(nullptr)
+    { }
     ~ContainerBase() = default;
     ContainerBase(const ContainerBase<ElementType> &other) = delete;
     ContainerBase(ContainerBase<ElementType> &&other) = default;
@@ -38,6 +43,16 @@ public:
     }
 };
 
+template <typename _ElementType>
+class ContainerVar : public ContainerBase<_ElementType>
+{
+public:
+    using ElementType = _ElementType;
+
+private:
+    ndim::LayoutVar m_layout;
+};
+
 template <typename _ElementType, size_t _Dimensionality = 0>
 class Container : public ContainerBase<_ElementType>
 {
@@ -46,8 +61,6 @@ public:
     static const size_t Dimensionality = _Dimensionality;
 
 private:
-    ElementType *m_mutableData;
-    const ElementType *m_constData;
     ndim::layout<Dimensionality> m_layout;
 
 public:

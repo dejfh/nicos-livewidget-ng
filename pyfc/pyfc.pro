@@ -23,7 +23,9 @@ HEADERS += \
 
 DISTFILES += \
     pyfc.sip \
-    setup.py
+    setup.py \
+    pyfilter.sip \
+    pyinvokefilter.sip
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD
