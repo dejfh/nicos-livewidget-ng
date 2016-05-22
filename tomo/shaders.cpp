@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "safecast.h"
+#include "helper/helper.h"
 
 #include <ndim/layout.h>
 
@@ -212,7 +212,7 @@ void assert_glError()
 {
 	int err;
 	assert(!(err = glGetError()));
-	jfh::unused_variable(err);
+	hlp::unused(err);
 }
 
 GLuint createShader(QGLFunctions &gl, const char *code, GLenum type)

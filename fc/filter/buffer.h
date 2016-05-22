@@ -49,8 +49,8 @@ public:
 		if (m_predecessor.unguarded() == predecessor)
 			return;
 		this->invalidate();
-		this->unregisterSuccessor(m_predecessor.unguarded());
-		this->registerSuccessor(predecessor);
+		this->unregisterAsSuccessor(m_predecessor.unguarded());
+		this->registerAsSuccessor(predecessor);
 		m_predecessor = std::move(predecessor);
 	}
 
@@ -77,20 +77,34 @@ public:
 			return;
 		}
 		auto predecessor = this->predecessor();
-		hlp::notNull(predecessor);
+		hlp::throwIfNull(predecessor);
 		progress.throwIfCancelled();
-		ndim::sizes<Dimensionality> sizes = hlp::notNull(predecessor)->prepare(progress);
+		ndim::sizes<Dimensionality> sizes = hlp::throwIfNull(predecessor)->prepare(progress);
 		m_data = ndim::pointer<ElementType, Dimensionality>(nullptr, sizes);
 		progress.appendValidatable(std::shared_ptr<const Validatable>(this->shared_from_this(), this));
 	}
 	virtual void validate(ValidationProgress &progress) const override
 	{
+		progress.holdRef(this->shared_from_this());
 		if (m_isValid)
 			return;
 		auto predecessor = this->predecessor();
 		progress.throwIfCancelled();
 
-		m_data = predecessor->getData(progress, &m_data);
+		auto data = predecessor->getData(progress, &m_data);
+		if (data.ownsData())
+			m_data = std::move(data);
+		else // if (!data.ownsData())
+		{
+			// TODO Would be better to keep reference, instead of copying, but the owning filter could be destructed during subsequent validations, if
+			// predecessors are changed.
+			auto ptr = data.constData();
+			m_data.resize(ptr.sizes);
+#pragma omp parallel
+			{
+				ndim::copy_omp(ptr, m_data.mutableData());
+			}
+		}
 		m_isValid = true;
 	}
 	virtual bool isValid() const override
@@ -110,7 +124,7 @@ public:
 	{
 		hlp::unused(recycle);
 		this->validate(progress);
-		return ndim::makeConstRefContainer(m_data.constData());
+		return m_data.constData();
 	}
 };
 

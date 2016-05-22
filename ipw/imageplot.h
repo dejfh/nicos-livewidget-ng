@@ -34,8 +34,8 @@ class ImagePlot : public QWidget
 	Q_OBJECT
 
 public:
-	enum SelectionMode { SelectionDisable, SelectionZoom, SelectionRect, SelectionLine };
-	enum GridMode { GridDisable, GridAuto, GridCustom };
+	enum class SelectionMode { Disable, Zoom, Rect, Line };
+	enum class GridMode { Disable, Auto, Custom };
 
 	explicit ImagePlot(QWidget *parent = 0);
 	~ImagePlot();

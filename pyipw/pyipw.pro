@@ -18,8 +18,8 @@ unix {
 }
 
 DISTFILES += \
-    pyipw.sip \
-    setup.py
+    setup.py \
+    module_pyipw.sip
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD

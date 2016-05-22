@@ -66,11 +66,9 @@ RangeSelectWidget::~RangeSelectWidget()
 	delete ui;
 }
 
-void RangeSelectWidget::setStatistic(const QSharedPointer<const ndimdata::DataStatistic> &statistic)
+void RangeSelectWidget::setStatistic(ndimdata::DataStatistic statistic)
 {
-	m_statistic = statistic;
-	if (!m_statistic)
-		return;
+	m_statistic = std::move(statistic);
 	updateHistogram();
 	modeChanged();
 }
@@ -104,21 +102,29 @@ void RangeSelectWidget::setBound2(double bound)
 	valuesUpdated();
 }
 
+void RangeSelectWidget::setRange(double a, double b)
+{
+	m_bound1 = a;
+	m_bound2 = b;
+	ui->radioRangeCustom->setChecked(true);
+	valuesUpdated();
+}
+
 RangeSelectWidget::RangeMode RangeSelectWidget::rangeMode() const
 {
-	return ui->radioRangeCustom->isChecked() ? RangeManual : ui->radioRangeAll->isChecked() ? RangeFull : RangeAuto;
+	return ui->radioRangeCustom->isChecked() ? RangeMode::Manual : ui->radioRangeAll->isChecked() ? RangeMode::Full : RangeMode::Auto;
 }
 
 void RangeSelectWidget::setRangeMode(RangeSelectWidget::RangeMode mode)
 {
 	switch (mode) {
-	case RangeFull:
+	case RangeMode::Full:
 		ui->radioRangeAll->setChecked(true);
 		break;
-	case RangeManual:
+	case RangeMode::Manual:
 		ui->radioRangeCustom->setChecked(true);
 		break;
-	case RangeAuto:
+	case RangeMode::Auto:
 	default:
 		ui->radioRangeAuto->setChecked(true);
 		break;
@@ -134,8 +140,7 @@ bool RangeSelectWidget::eventFilter(QObject *object, QEvent *event)
 				ui->radioRangeAll->setChecked(true);
 			else
 				ui->radioRangeAuto->setChecked(true);
-			if (m_statistic)
-				modeChanged();
+			modeChanged();
 		}
 		return true;
 	}
@@ -144,7 +149,7 @@ bool RangeSelectWidget::eventFilter(QObject *object, QEvent *event)
 
 void RangeSelectWidget::updateHistogram()
 {
-	const ndimdata::DataStatistic &statistic(*m_statistic.data());
+	const ndimdata::DataStatistic &statistic(m_statistic);
 
 	const QVector<size_t> bins = QVector<size_t>::fromStdVector(statistic.histogram);
 	double min = statistic.min;
@@ -166,7 +171,7 @@ void RangeSelectWidget::updateHistogram()
 
 void RangeSelectWidget::modeChanged()
 {
-	const ndimdata::DataStatistic &statistic(*m_statistic.data());
+	const ndimdata::DataStatistic &statistic(m_statistic);
 	if (ui->radioRangeAll->isChecked()) {
 		m_bound1 = statistic.min;
 		m_bound2 = statistic.max;
@@ -196,8 +201,7 @@ void RangeSelectWidget::valuesUpdated()
 
 void RangeSelectWidget::updateControls()
 {
-	hlp::assert_true() << !m_statistic.isNull();
-	const ndimdata::DataStatistic &statistic(*m_statistic.data());
+	const ndimdata::DataStatistic &statistic(m_statistic);
 	m_updating = true;
 	ui->spinMinMax1->setValue(m_bound1);
 	ui->spinMinMax2->setValue(m_bound2);
@@ -218,25 +222,25 @@ void RangeSelectWidget::updateControls()
 
 void RangeSelectWidget::on_sliderMinMax1_valueChanged(int v)
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	ui->radioRangeCustom->setChecked(true);
-	m_bound1 = fromSliderValue(v, ui->sliderMinMax1->maximum(), m_statistic->min, m_statistic->max);
+	m_bound1 = fromSliderValue(v, ui->sliderMinMax1->maximum(), m_statistic.min, m_statistic.max);
 	valuesUpdated();
 }
 
 void RangeSelectWidget::on_sliderMinMax2_valueChanged(int v)
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	ui->radioRangeCustom->setChecked(true);
-	m_bound2 = fromSliderValue(v, ui->sliderMinMax2->maximum(), m_statistic->min, m_statistic->max);
+	m_bound2 = fromSliderValue(v, ui->sliderMinMax2->maximum(), m_statistic.min, m_statistic.max);
 	valuesUpdated();
 }
 
 void RangeSelectWidget::on_spinMinMax1_valueChanged(double v)
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	ui->radioRangeCustom->setChecked(true);
 	m_bound1 = v;
@@ -245,7 +249,7 @@ void RangeSelectWidget::on_spinMinMax1_valueChanged(double v)
 
 void RangeSelectWidget::on_spinMinMax2_valueChanged(double v)
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	ui->radioRangeCustom->setChecked(true);
 	m_bound2 = v;
@@ -254,28 +258,28 @@ void RangeSelectWidget::on_spinMinMax2_valueChanged(double v)
 
 void RangeSelectWidget::on_radioRangeAll_clicked()
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	modeChanged();
 }
 
 void RangeSelectWidget::on_radioRangeAuto_clicked()
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	modeChanged();
 }
 
 void RangeSelectWidget::on_radioRangeCustom_clicked()
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	valuesUpdated();
 }
 
 void RangeSelectWidget::rangePicked(QRectF range)
 {
-	if (m_updating || !m_statistic)
+	if (m_updating)
 		return;
 	ui->radioRangeCustom->setChecked(true);
 	m_bound1 = range.left();

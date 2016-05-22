@@ -2,8 +2,6 @@
 
 #include "fits/fitsloadersettings.h"
 
-#include "safecast.h"
-
 #include <fitsio.h>
 
 #include <stdexcept>

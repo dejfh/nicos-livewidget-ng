@@ -63,7 +63,7 @@ public:
 	}
 	ValueType *operator->() const
 	{
-		ValueType& data = m_data;
+        ValueType &data = m_data;
 		return &data;
 	}
 };
@@ -106,6 +106,10 @@ public:
 	{
 		return m_data;
 	}
+    ValueType &unguardedMutable()
+    {
+        return m_data;
+    }
 
 	ValueType take()
 	{

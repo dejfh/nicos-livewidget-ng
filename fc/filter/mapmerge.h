@@ -36,8 +36,8 @@ public:
 	void setPredecessors(const QVector<std::shared_ptr<const DataFilter<QMap<KeyType, ValueType>>>> &predecessors)
 	{
 		this->invalidate();
-		this->unregisterSuccessor(m_predecessors.unguarded());
-		this->registerSuccessor(predecessors);
+		this->unregisterAsSuccessor(m_predecessors.unguarded());
+		this->registerAsSuccessor(predecessors);
 		m_predecessors = predecessors;
 	}
 
@@ -48,7 +48,7 @@ public:
 		auto predecessors = this->predecessors();
 		progress.throwIfCancelled();
 		for (const auto &predecessor : predecessors)
-			hlp::notNull(predecessor.get())->prepare(progress);
+			hlp::throwIfNull(predecessor.get())->prepare(progress);
 		return ndim::makeSizes();
 	}
 	virtual ndim::Container<QMap<KeyType, ValueType>> getData(ValidationProgress &progress, ndim::Container<QMap<KeyType, ValueType>> *recycle) const override

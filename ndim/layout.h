@@ -5,12 +5,15 @@
 #include <array>
 #include <cstddef>
 #include <numeric>
+#include <exception>
 
 #include <initializer_list>
 
 #include "helper/helper.h"
 #include "helper/array.h"
 #include "helper/byteoffset.h"
+
+#include <iostream>
 
 namespace ndim
 {
@@ -25,7 +28,7 @@ template <size_t Dimensionality>
 using Strides = std::array<hlp::byte_offset_t, Dimensionality>;
 
 using IndicesVar = std::vector<size_t>;
-using SizesVar = std::vector<size_t>;
+using ShapeVar = std::vector<size_t>;
 using StridesVar = std::vector<hlp::byte_offset_t>;
 
 inline Indices<0> makeIndices()
@@ -64,7 +67,7 @@ size_t totalCount(Sizes<Dimensionality> sizes)
 		count *= size;
 	return count;
 }
-inline size_t toalCount(const SizesVar &sizes)
+inline size_t totalCount(const ShapeVar &sizes)
 {
     size_t count = 1;
     for (size_t size : sizes)
@@ -80,7 +83,7 @@ bool isEmpty(Sizes<Dimensionality> sizes)
 			return true;
 	return false;
 }
-inline bool isEmpty(const SizesVar &sizes)
+inline bool isEmpty(const ShapeVar &sizes)
 {
     for (size_t size : sizes)
         if (size == 0)
@@ -89,25 +92,26 @@ inline bool isEmpty(const SizesVar &sizes)
 }
 
 template <size_t Dimensionality>
-bool contains(Sizes<Dimensionality> sizes, Indices<Dimensionality> coords)
+bool contains(Sizes<Dimensionality> shape, Indices<Dimensionality> coords)
 {
-	for (auto itSizes = sizes.cbegin(), endSizes = sizes.cend(), itCoords = coords.cbegin(); itSizes != endSizes; ++itSizes, ++itCoords)
-		if (*itSizes <= *itCoords)
+    for (auto itShape = shape.cbegin(), endShape = shape.cend(), itCoords = coords.cbegin(); itShape != endShape; ++itShape, ++itCoords)
+        if (*itShape <= *itCoords)
 			return false;
 	return true;
 }
-inline bool contains(const SizesVar &sizes, const IndicesVar coords)
+inline bool contains(const ShapeVar &shape, const IndicesVar coords)
 {
-    for (auto itSizes = sizes.cbegin(), endSizes = sizes.cend(), itCoords = coords.cbegin(), endCoords = coords.cend(); itSizes != endSizes && itCoords != endCoords; ++itSizes, ++itCoords)
-        if (*itSizes <= *itCoords)
+    for (auto itShape = shape.cbegin(), endShape = shape.cend(), itCoords = coords.cbegin(), endCoords = coords.cend();
+         itShape != endShape && itCoords != endCoords; ++itShape, ++itCoords)
+        if (*itShape <= *itCoords)
             return false;
     return true;
 }
 
 template <size_t Dimensionality, typename... IndexTypes>
-bool contains(Sizes<Dimensionality> sizes, size_t coord0, IndexTypes... coordN)
+bool contains(Sizes<Dimensionality> shape, size_t coord0, IndexTypes... coordN)
 {
-	return contains(sizes, Indices<Dimensionality>{coord0, coordN...});
+    return contains(shape, Indices<Dimensionality>{coord0, coordN...});
 }
 
 template <size_t Dimensionality>
@@ -127,17 +131,19 @@ inline bool isVirtual(const StridesVar &strides)
 }
 
 template <size_t Dimensionality>
-hlp::byte_offset_t offsetOf(Strides<Dimensionality> strides, Indices<Dimensionality> coords) {
+hlp::byte_offset_t offsetOf(Strides<Dimensionality> strides, Indices<Dimensionality> coords)
+{
     hlp::byte_offset_t offset(0);
-    for (auto itStrides= strides.cbegin(), endStrides = strides.cend(), itCoords = coords.cbegin(); itStrides != endStrides; ++itStrides, ++itCoords)
+    for (auto itStrides = strides.cbegin(), endStrides = strides.cend(), itCoords = coords.cbegin(); itStrides != endStrides; ++itStrides, ++itCoords)
         offset += *itStrides * *itCoords;
     return offset;
 }
-inline hlp::byte_offset_t offsetOf(const StridesVar &strides, const IndicesVar &coords) {
+inline hlp::byte_offset_t offsetOf(const StridesVar &strides, const IndicesVar &coords)
+{
     hlp::byte_offset_t offset(0);
     auto itStrides = strides.cbegin(), endStrides = strides.cend();
     auto itCoords = coords.cbegin(), endCoords = coords.cend();
-    for (; itStrides  != endStrides && itCoords != endCoords; ++itStrides , ++itCoords)
+    for (; itStrides != endStrides && itCoords != endCoords; ++itStrides, ++itCoords)
         offset += *itStrides * *itCoords;
     return offset;
 }
@@ -286,15 +292,12 @@ hlp::byte_offset_t _indexOf_forward(const ndim::strides<_D> &strides, size_t coo
 	return strides[_D - 1 - sizeof...(indices_t)] * coordinate + _indexOf_forward(strides, moreCoordinates...);
 }
 
-struct LayoutVar {
-    SizesVar sizes;
-    StridesVar strides;
-};
-
 template <size_t _D>
 struct layout {
     ndim::sizes<_D> sizes;
     ndim::strides<_D> byte_strides;
+
+    static const size_t Dimensionality = _D;
 
 	layout()
 	{
@@ -353,25 +356,17 @@ struct layout {
 		return sizes[2];
 	}
 
-	size_t &width()
-	{
-		static_assert(_D >= 1, "dimension to small for width");
-		return sizes[0];
-	}
-	size_t &height()
-	{
-		static_assert(_D >= 2, "dimension to small for height");
-		return sizes[1];
-	}
-	size_t &depth()
-	{
-		static_assert(_D >= 3, "dimension to small for depth");
-		return sizes[2];
-	}
+    size_t count() const
+    {
+        size_t count = 1;
+        for (size_t s : sizes)
+            count *= s;
+        return count;
+    }
 
 	size_t size() const
 	{
-		return sizes.size();
+        return count();
 	}
 	bool isEmpty() const
 	{
@@ -422,30 +417,71 @@ struct layout {
 	}
 };
 
-// template <typename... SizesTypes>
-// layout<1 + sizeof...(SizesTypes)> make_layout_contiguous(size_t size0, SizesTypes... sizeN)
-//{
-//	return layout<1 + sizeof...(SizesTypes)>(ndim::Sizes<1 + sizeof...(SizesTypes)>{size0, sizeN...});
-//}
+struct LayoutVar {
+    ShapeVar shape;
+    StridesVar strides;
 
-// template <size_t _D>
-// void _make_layout_forward(layout<_D> &)
-//{
-//}
-// template <size_t _D, typename... sizes_and_strides_t>
-// void _make_layout_forward(layout<_D> &layout, size_t size, size_t stride, sizes_and_strides_t... more_sizes_and_strides)
-//{
-//	layout.sizes[_D - sizeof...(sizes_and_strides_t) / 2 - 1] = size;
-//	layout.strides[_D - sizeof...(sizes_and_strides_t) / 2 - 1] = stride;
-//	_make_layout_forward(layout, more_sizes_and_strides...);
-//}
-// template <typename... sizes_and_strides_t>
-// layout<sizeof...(sizes_and_strides_t) / 2 + 1> make_layout(size_t size, size_t stride, sizes_and_strides_t... more_sizes_and_strides)
-//{
-//	layout<sizeof...(sizes_and_strides_t) / 2 + 1> layout;
-//	_make_layout_forward(layout, size, stride, more_sizes_and_strides...);
-//	return layout;
-//}
+    size_t dimensionality() const
+    {
+        return shape.size();
+    }
+
+    LayoutVar()
+    {
+    }
+    LayoutVar(ShapeVar shape, hlp::byte_offset_t baseStride)
+        : shape(std::move(shape))
+    {
+        strides.resize(this->shape.size());
+        for (size_t i = 0, ii = this->shape.size(); i < ii; ++i) {
+            strides[i] = baseStride;
+            baseStride *= this->shape[i];
+        }
+    }
+    LayoutVar(ShapeVar shape, StridesVar strides)
+        : shape(std::move(shape))
+        , strides(std::move(strides))
+    {
+        if (shape.size() != strides.size())
+            throw std::out_of_range("Shape and strides must have same dimensionality.");
+    }
+
+    template <size_t Dimensionality>
+    LayoutVar(layout<Dimensionality> other)
+        : shape(other.sizes.cbegin(), other.sizes.cend())
+        , strides(other.byte_strides.cbegin(), other.byte_strides.cend())
+    {
+    }
+
+    template <size_t Dimensionality>
+    layout<Dimensionality> fixDimensionality() const
+    {
+        if (shape.size() != Dimensionality || strides.size() != Dimensionality)
+            throw std::out_of_range("Shape and/or strides must have the fix-dimensionality.");
+        layout<Dimensionality> result;
+        std::copy(shape.cbegin(), shape.cend(), result.sizes.begin());
+        std::copy(strides.cbegin(), strides.cend(), result.byte_strides.begin());
+        return result;
+    }
+
+    hlp::byte_offset_t offsetOf(const IndicesVar &coords) const
+    {
+        if (strides.size() != coords.size())
+            throw std::out_of_range("Coords and strides must have same dimensionality.");
+        hlp::byte_offset_t offset(0);
+        for (size_t i = 0, ii = strides.size(); i < ii; ++i)
+            offset += coords[i] * strides[i];
+        return offset;
+    }
+
+    size_t count() const
+    {
+        size_t count = 1;
+        for (size_t s : shape)
+            count *= s;
+        return count;
+    }
+};
 
 } // namespace ndim
 

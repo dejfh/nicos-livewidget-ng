@@ -21,7 +21,7 @@ namespace fc
 namespace chains
 {
 
-class ImageOutputChain
+class ImageOutput
 {
 private:
 	std::shared_ptr<fc::filter::Forward<float, 2>> m_input;
@@ -35,10 +35,10 @@ private:
 
 	std::shared_ptr<fc::filter::ValueRange> m_colorRange;
 	std::shared_ptr<fc::filter::SwitchControl> m_colormapSwitch;
-	std::shared_ptr<fc::filter::Buffer<QImage>> m_pixmapBuffer;
+	std::shared_ptr<fc::filter::Buffer<QImage>> m_imageBuffer;
 
 public:
-	ImageOutputChain()
+	ImageOutput()
 	{
 		m_input = std::make_shared<fc::filter::Forward<float, 2>>();
 
@@ -66,13 +66,19 @@ public:
 		// Select final image
 		auto colormapSwitch = fc::filter::makeSwitch(pixmapGrayscale, pixmapColor);
 		// Buffer final image
-		m_pixmapBuffer = fc::filter::makeBuffer(colormapSwitch);
+		m_imageBuffer = fc::filter::makeBuffer(colormapSwitch);
 
 		m_logSwitch = std::move(logSwitch);
 		m_regionOfInterest = std::move(region);
 		m_regionOfInterestSwitch = std::move(regionSwitch);
 		m_colormapSwitch = std::move(colormapSwitch);
 	}
+
+	ImageOutput(const ImageOutput &) = default;
+	ImageOutput(ImageOutput &&) = default;
+
+	ImageOutput &operator=(const ImageOutput &) = default;
+	ImageOutput &operator=(ImageOutput &&) = default;
 
 	std::shared_ptr<const DataFilter<float, 2>> source() const
 	{
@@ -122,13 +128,13 @@ public:
 		return m_regionOfInterestSwitch;
 	}
 
-	std::shared_ptr<const fc::filter::Buffer<ndimdata::DataStatistic>> statistic() const
+	std::shared_ptr<fc::filter::Buffer<ndimdata::DataStatistic>> statistic() const
 	{
 		return m_statisticBuffer;
 	}
-	std::shared_ptr<const fc::filter::Buffer<QImage>> pixmap() const
+	std::shared_ptr<fc::filter::Buffer<QImage>> image() const
 	{
-		return m_pixmapBuffer;
+		return m_imageBuffer;
 	}
 };
 

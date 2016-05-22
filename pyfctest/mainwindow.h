@@ -3,8 +3,6 @@
 
 #include <QMainWindow>
 
-#include "pyfc/filterchain.h"
-
 namespace Ui {
 class MainWindow;
 }
@@ -19,7 +17,6 @@ public:
 
 private:
 	Ui::MainWindow *ui;
-	FilterChain *filterChain;
 };
 
 #endif // MAINWINDOW_H

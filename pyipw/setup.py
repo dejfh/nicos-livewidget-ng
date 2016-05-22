@@ -72,30 +72,18 @@ extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
 
 if sys.platform == 'darwin':
     extra_libs.extend(['QtCore', 'QtGui'])
-    extra_include_dirs.append("/usr/local/cfitsio/include")
 elif sys.platform == 'win32':
     extra_libs.extend(['QtCore4', 'QtGui4'])
 else:
     extra_libs.extend(['QtCore', 'QtGui'])
     dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
-    if dist == 'openSUSE':
-        extra_include_dirs.extend(["/usr/include/libcfitsio0", "/usr/include/cfitsio"])
-    elif dist == 'Fedora':
-        extra_include_dirs.append("/usr/include/cfitsio")
-    elif dist in ['Ubuntu', 'LinuxMint', 'debian', 'CentOS']:
-        pass
-    else:
-        print("WARNING: Don't know where to find headers and libraries for your distribution")
-        # still try to build with usable defaults
-
-sources = []
 
 setup(
-    name='nicosimageplot',
+    name='nicos_imageplot',
     version='1',
     ext_modules=[
-    Extension('nicosimageplot',
-          ['pyipw.sip'] + sources,
+    Extension('nicos_imageplot',
+          ['module_pyipw.sip'],
           include_dirs=['.'] + extra_include_dirs,
           library_dirs=extra_lib_dirs,
           libraries=extra_libs,

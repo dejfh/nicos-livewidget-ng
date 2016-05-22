@@ -4,12 +4,12 @@
 
 #include <QDataStream>
 
-#include "safecast.h"
+#include "helper/helper.h"
 
 #include "ndim/algorithm.h"
 
-using jfh::assert_result;
-using jfh::cast_over_void;
+using hlp::assert_result;
+using hlp::cast_over_void;
 
 namespace tomo
 {
@@ -29,7 +29,7 @@ SinogramFile::SinogramFile(const QString &filename, QObject *parent)
 
 	const SinogramFileHeader *header = cast_over_void<const SinogramFileHeader *>(m_map_read);
 	assert(header->validate(m_file.size()));
-	jfh::unused_variable(header);
+	hlp::unused(header);
 }
 
 SinogramFile::SinogramFile(const QString &filename, quint32 resolution, quint32 layers, quint32 angles, quint32 angle_capacity, QObject *parent)

@@ -18,5 +18,5 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 msvc {
 	QMAKE_CXXFLAGS += -D _CRT_SECURE_NO_WARNINGS
 } else {
-	QMAKE_CXXFLAGS +=-Wall -Wextra -pedantic
+    QMAKE_CXXFLAGS +=-Wall -Wextra -pedantic -ggdb
 }

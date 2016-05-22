@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <asyncprogress.h>
+#include <helper/asyncprogress.h>
 
 #include "ndim/pointer.h"
 
@@ -45,7 +45,7 @@ public:
 
 	 \param callback Callback, which is called from time to time during the search
 	*/
-	void run(AsyncPartialProgress progress);
+	void run(hlp::AsyncPartialProgress progress);
 
 protected:
 	/*!
@@ -58,7 +58,7 @@ protected:
 	 \param callback Callback, which is called from time to time during the search, or NULL
 	 \param obj A custom parameter forwarded to the callback
 	*/
-	void runStep(AsyncPartialProgress progress);
+	void runStep(hlp::AsyncPartialProgress progress);
 
 	/*!
 	 \brief Does an initial guess for the axis of rotation.
@@ -87,7 +87,7 @@ protected:
 	 \param stepAngle The step size to vary the slope of the axis of rotation
 	 \param stepCount The amount of steps to vary in every direction
 	*/
-	void optimize(AsyncPartialProgress progress, double stepSize, int stepCount);
+	void optimize(hlp::AsyncPartialProgress progress, double stepSize, int stepCount);
 
 	/*!
 	 \brief Calculates the center of intensity for a specific region of an image.

@@ -17,7 +17,7 @@ namespace ndim
 
 template <typename _T, size_t _D>
 struct pointer : ::ndim::layout<_D> {
-	typedef _T ElementType;
+    using ElementType = _T;
 
 	_T *data;
 
@@ -38,33 +38,33 @@ struct pointer : ::ndim::layout<_D> {
 	{
 	}
 
-	pointer(_T *data, ndim::sizes<_D> sizes)
-        : layout<_D>(sizes, hlp::byte_offset_t::inArray<_T>())
+    pointer(_T *data, const ::ndim::layout<_D> &layout)
+        : ::ndim::layout<_D>(layout)
+        , data(data)
+    {
+    }
+
+    pointer(_T *data, const std::array<size_t, _D> &shape, const std::array<hlp::byte_offset_t, _D> &byteStrides)
+        : layout<_D>(shape, byteStrides)
+        , data(data)
+    {
+    }
+
+    pointer(_T *data, ndim::sizes<_D> shape)
+        : layout<_D>(shape, hlp::byte_offset_t::inArray<_T>())
 		, data(data)
 	{
 	}
 
-    pointer(_T *data, const std::array<size_t, _D> &sizes, const std::array<hlp::byte_offset_t, _D> &byte_strides)
-        : layout<_D>(sizes, byte_strides)
-		, data(data)
-	{
-	}
-
-	pointer(_T *data, const ::ndim::layout<_D> &layout)
-		: ::ndim::layout<_D>(layout)
-		, data(data)
-	{
-	}
-
-	template <typename _T_other, typename = typename std::enable_if<std::is_same<typename std::remove_cv<_T>::type, _T_other>::value>::type>
-	pointer(const ndim::pointer<_T_other, _D> &other)
+    template <typename OtherElementType, typename = typename std::enable_if<std::is_assignable<ElementType *&, OtherElementType *>::value>::type>
+    pointer(const ndim::pointer<OtherElementType, _D> &other)
 		: layout<_D>(other)
 		, data(other.data)
 	{
 	}
 
-	template <typename _T_other, typename = typename std::enable_if<std::is_same<typename std::remove_cv<_T>::type, _T_other>::value>::type>
-	pointer<_T, _D> &operator=(const pointer<_T_other, _D> &other)
+    template <typename OtherElementType, typename = typename std::enable_if<std::is_assignable<ElementType *&, OtherElementType *>::value>::type>
+    pointer<_T, _D> &operator=(const pointer<OtherElementType, _D> &other)
 	{
 		data = other.data;
 		static_cast<ndim::layout<_D> &>(*this) = static_cast<const ndim::layout<_D> &>(other);
@@ -188,6 +188,116 @@ struct pointer : ::ndim::layout<_D> {
 	}
 };
 
+template <typename _ElementType>
+struct PointerVar : LayoutVar {
+    using ElementType = _ElementType;
+
+    ElementType *data;
+
+    ElementType &first() const
+    {
+        return *data;
+    }
+    ElementType &last() const
+    {
+        ElementType *item = data;
+        for (size_t i = 0, ii = this->dimensionality(); i < ii; ++i)
+            item += (this->shape[i] - 1) * this->strides[i];
+        return *item;
+    }
+
+    PointerVar()
+        : data(nullptr)
+    {
+    }
+
+    PointerVar(ElementType *data, LayoutVar layout)
+        : LayoutVar(std::move(layout))
+        , data(data)
+    {
+    }
+
+    PointerVar(ElementType *data, ShapeVar shape, StridesVar byteStrides)
+        : LayoutVar(std::move(shape), std::move(byteStrides))
+        , data(data)
+    {
+    }
+
+    PointerVar(ElementType *data, ShapeVar shape)
+        : LayoutVar(std::move(shape), hlp::byte_offset_t::inArray<ElementType>())
+        , data(data)
+    {
+    }
+
+    template <size_t Dimensionality>
+    PointerVar(pointer<ElementType, Dimensionality> other)
+        : LayoutVar(other)
+        , data(other.data)
+    {
+    }
+
+    template <size_t Dimensionality>
+    pointer<ElementType, Dimensionality> fixDimensionality() const
+    {
+        auto layout = this->layout().template fixDimensionality<Dimensionality>();
+        return pointer<ElementType, Dimensionality>(data, layout);
+    }
+
+    template <typename OtherElementType, typename = typename std::enable_if<std::is_assignable<ElementType *&, OtherElementType *>::value>::type>
+    PointerVar(const PointerVar<OtherElementType> &other)
+        : LayoutVar(other)
+        , data(other.data)
+    {
+    }
+
+    template <typename OtherElementType, typename = typename std::enable_if<std::is_assignable<ElementType *&, OtherElementType *>::value>::type>
+    PointerVar<ElementType> &operator=(PointerVar<OtherElementType> other)
+    {
+        data = other.data;
+        static_cast<LayoutVar &>(*this) = static_cast<LayoutVar &&>(other);
+        return *this;
+    }
+
+    ElementType &operator[](const IndicesVar &coords) const
+    {
+        return *(data + this->offsetOf(coords));
+    }
+
+    ElementType value(const IndicesVar &coords, ElementType _default) const
+    {
+        if (ndim::contains(this->shape, coords))
+            return this->operator[](coords);
+        return _default;
+    }
+
+    operator bool() const
+    {
+        return data;
+    }
+
+    const LayoutVar &layout() const
+    {
+        return *this;
+    }
+
+    LayoutVar &layout()
+    {
+        return *this;
+    }
+};
+
+template <typename ElementType>
+PointerVar<ElementType> make_pointer(ElementType *data, LayoutVar layout)
+{
+    return PointerVar<ElementType>(data, std::move(layout));
+}
+
+template <typename ElementType>
+PointerVar<ElementType> make_pointer(ElementType *data, ShapeVar shape)
+{
+    return PointerVar<ElementType>(data, std::move(shape));
+}
+
 template <typename ElementType, size_t Dimensionality>
 pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const ndim::layout<Dimensionality> &layout)
 {
@@ -195,9 +305,9 @@ pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const ndim:
 }
 
 template <typename ElementType, size_t Dimensionality>
-pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const Sizes<Dimensionality> &sizes)
+pointer<ElementType, Dimensionality> make_pointer(ElementType *data, const Sizes<Dimensionality> &shape)
 {
-	return pointer<ElementType, Dimensionality>(data, sizes);
+    return pointer<ElementType, Dimensionality>(data, shape);
 }
 
 template <typename ElementType>
@@ -211,15 +321,6 @@ pointer<_T, 1 + sizeof...(SizesTypes)> make_ptr_contiguous(_T *data, size_t size
 {
 	return pointer<_T, 1 + sizeof...(SizesTypes)>(data, Sizes<1 + sizeof...(SizesTypes)>{size0, sizeN...});
 }
-
-// template <typename _T, typename... sizes_and_strides_t>
-// pointer<_T, sizeof...(sizes_and_strides_t) / 2 + 1> make_ptr(_T *data, size_t size, size_t stride, sizes_and_strides_t... more_sizes_and_strides)
-//{
-//	pointer<_T, sizeof...(sizes_and_strides_t) / 2 + 1> ptr;
-//	ptr.data = data;
-//	_make_layout_forward(ptr, size, stride, more_sizes_and_strides...);
-//	return ptr;
-//}
 
 } // namespace ndim
 

@@ -14,10 +14,12 @@ import numpy
 
 # Allow running this after "python setup.py build"
 sys.path[0:0] = glob.glob('../pyfc/build/lib.*')
+sys.path[0:0] = glob.glob('../pyfcfits/build/lib.*')
 sys.path[0:0] = glob.glob('../pyipw/build/lib.*')
 
-from nicosfilterchain import FilterChain #, NoopFilter2d
-from nicosimageplot import ImagePlot #, HistogramPlot, RangeSelectWidget
+from nicos_filterchain import QtValidator, ImageOutputChain, Numpy2d, InvokeFilter, FixDimFilter2d, FilterVar
+from nicos_filterchain_fits import Fits2d
+from nicos_imageplot import ImagePlot
 
 # from nicosfilterchain import __VERSION__ as nicosfilterchainversion
 # from nicosimagewidget import __VERSION__ as nicosimagewidgetversion
@@ -28,8 +30,9 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self, parent)
         ui = loadUi('demo.ui', self)
 
-        filterChain = FilterChain(self)
-        self.fc = filterChain
+        validator = QtValidator(self)
+
+        outputChain = ImageOutputChain()
 
         data1 = numpy.identity(3)
         data1 = numpy.array(data1, dtype='f')
@@ -40,9 +43,11 @@ class MainWindow(QMainWindow):
 
         im = [[5,3,4],[1,5,7],[5,7,4]]
 
-        filterChain.setInput(im)
-        filterChain.setDarkImage(di)
-        filterChain.setOpenBeam(ob)
+        npfilter = Numpy2d()
+        npfilter.setData(im)
+
+        fitsfilter = Fits2d()
+        fitsfilter.setFilename('C:/Dev/huge data/Tomography/lava/raw/seismolava64__000.000.fits')
 
         # filterChain.setInputFitsFile('/home/felix/Projekte/daten/lava/raw/seismolava64__000.000.fits')
 
@@ -55,30 +60,50 @@ class MainWindow(QMainWindow):
 
         # self.controlsLayout.append(filter.getControl()) for filter in filters
 
-        self.imagewidget = ImagePlot(self)
-        self.setCentralWidget(self.imagewidget)
+        imagewidget = ImagePlot(self)
+        self.setCentralWidget(imagewidget)
 
-        ui.checkColor.toggled.connect(filterChain.setUseColor)
-        ui.checkInvert.toggled.connect(filterChain.setInvert)
-        ui.checkNormalize.toggled.connect(filterChain.setNormalize)
-        ui.checkLogarithmic.toggled.connect(filterChain.setLogarithmic)
+        ui.checkColor.toggled.connect(outputChain.setColor)
+        ui.checkInvert.toggled.connect(outputChain.setInvert)
+        # ui.checkNormalize.toggled.connect(outputChain.setNormalize)
+        ui.checkLogarithmic.toggled.connect(outputChain.setLog)
 
-        filterChain.pixmapChanged.connect(self.imagewidget.setImage)
+        ui.checkGrid.toggled.connect(imagewidget.setGridEnabled)
 
-        filterChain.start()
+        def prepareCallback(input):
+            print input
+            return input
 
-        def callback():
-            printer = QPrinter()
-            dialog = QPrintDialog(printer, self)
-            r = dialog.exec_()
-            if r != 1: return
-            painter = QPainter()
-            painter.begin(printer)
-            # painter.scale(3,3)
-            self.imagewidget.render(painter)
-            painter.end()
+        def getDataCallback(input):
+            print input
+            return input
 
-        ui.btnPrint.clicked.connect(callback)
+        customFilter = InvokeFilter()
+        customFilter.setPredecessors([FilterVar(npfilter.filter())])
+        customFilter.setTarget(prepareCallback, getDataCallback)
+
+        fix2d = FixDimFilter2d()
+        fix2d.setPredecessor(customFilter.filter())
+
+        outputChain.setSource(fix2d.filter())
+
+        validator.add(outputChain.statistic().validatable())
+        validator.add(outputChain.image().validatable())
+
+        self.validator = validator
+
+        def validationCallback():
+            if (outputChain.image().isValid()):
+                imagewidget.setImage(outputChain.image().image())
+
+        validator.validationStep.connect(validationCallback)
+
+        def testCallback():
+            outputChain.setSource(fitsfilter.filter())
+
+        ui.buttonTest.clicked.connect(testCallback)
+
+        validator.start()
 
 if __name__ == '__main__':
 

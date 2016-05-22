@@ -10,7 +10,11 @@
 namespace hlp
 {
 
-/// @brief Suppress compiler warnings for given unused variables.
+/**
+ * @brief Suppress compiler warnings for given unused variables.
+ *
+ * Especially usefull for lock guards like std::lock_guard, hlp::ThreadsafeGuard or hlp::python::Gil.
+ */
 template <typename... UnusedTypes>
 void unused(UnusedTypes &&...)
 {
@@ -65,8 +69,8 @@ inline out_t cast_over_void(in_t *ptr)
  * \param pointer The pointer to check for null.
  * \returns The given pointer if it is not null.
  * */
-template <typename _Type>
-_Type *notNull(_Type *pointer)
+template <typename Type>
+Type *throwIfNull(Type *pointer)
 {
 	if (!pointer)
 		throw std::invalid_argument("Pointer is null.");
@@ -78,37 +82,38 @@ _Type *notNull(_Type *pointer)
  * \param pointer The pointer to check for null.
  * \returns The given pointer if it is not null.
  * */
-template <typename _Type>
-_Type *notNull(const std::unique_ptr<_Type> &pointer)
+template <typename Type>
+Type *throwIfNull(const std::unique_ptr<Type> &pointer)
 {
 	if (!pointer)
 		throw std::invalid_argument("Pointer is null.");
-	return pointer.get();
+    return pointer.get();
 }
 
-template <typename _Type>
-_Type *notNull(std::unique_ptr<_Type> &&) = delete;
+template <typename Type>
+void throwIfNull(std::unique_ptr<Type> &&) = delete;
 
 /*! \brief Throws a std::invalid_argument exception if the given pointer is null.
  *
  * \param pointer The pointer to check for null.
  * \returns The given pointer if it is not null.
  * */
-template <typename _Type>
-_Type *notNull(const std::shared_ptr<_Type> &pointer)
+template <typename Type>
+Type *throwIfNull(const std::shared_ptr<Type> &pointer)
 {
 	if (!pointer)
 		throw std::invalid_argument("Pointer is null.");
-	return pointer.get();
+    return pointer.get();
 }
 
-template <typename _Type>
-_Type *notNull(std::shared_ptr<_Type> &&) = delete;
+template <typename Type>
+void throwIfNull(std::shared_ptr<Type> &&) = delete;
 
-template <typename _Type>
-const _Type &asConst(_Type &&) = delete;
-template <typename _Type>
-const _Type &asConst(_Type &ref)
+template <typename Type>
+const Type &constRef(Type &&) = delete;
+
+template <typename Type>
+const Type &constRef(Type &ref)
 {
 	return ref;
 }

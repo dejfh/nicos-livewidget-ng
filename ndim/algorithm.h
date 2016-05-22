@@ -16,53 +16,53 @@ namespace ndim
 
 template <typename _OperationType, size_t _Dimensions, typename... _Types>
 auto operate(_OperationType op, std::tuple<pointer<_Types, _Dimensions>...> args) // (manual break)
-	-> typename std::enable_if<!jfh::variadic::HasSignature<_OperationType, std::array<size_t, _Dimensions>, _Types...>::value>::type
+    -> typename std::enable_if<!jfh::variadic::HasSignature<_OperationType, std::array<size_t, _Dimensions>, _Types...>::value>::type
 {
 	size_t count = std::get<0>(args).size();
 	auto iterator = ndim::makeMultiIterator(args);
 	for (size_t i = 0; i < count; ++i, ++iterator) {
 		auto tuple = *iterator;
-		jfh::variadic::_callV(op, tuple, jfh::variadic::makeSequence(tuple));
+        jfh::variadic::_callV(op, tuple, jfh::variadic::makeSequence(tuple));
 	}
 }
 
 template <typename _OperationType, size_t _Dimensions, typename... _Types>
 auto operate(_OperationType op, std::tuple<pointer<_Types, _Dimensions>...> args) // (manual break)
-	-> typename std::enable_if<jfh::variadic::HasSignature<_OperationType, std::array<size_t, _Dimensions>, _Types...>::value>::type
+    -> typename std::enable_if<jfh::variadic::HasSignature<_OperationType, std::array<size_t, _Dimensions>, _Types...>::value>::type
 // operation with argument for coordinates
 {
 	size_t count = std::get<0>(args).size();
 	auto iterator = ndim::makeMultiIterator(args);
 	for (size_t i = 0; i < count; ++i, ++iterator) {
 		auto tuple = std::tuple_cat(std::make_tuple(iterator.coords()), *iterator);
-		jfh::variadic::_callV(op, tuple, jfh::variadic::makeSequence(tuple));
+        jfh::variadic::_callV(op, tuple, jfh::variadic::makeSequence(tuple));
 	}
 }
 
 template <typename _Result, typename _OperationType, size_t _Dimensions, typename... _Types>
 auto accumulate(_OperationType op, _Result value, std::tuple<pointer<_Types, _Dimensions>...> args) // (manual break)
 	->
-	typename std::enable_if<!jfh::variadic::HasSignature<_OperationType, _Result, std::array<size_t, _Dimensions>, _Types...>::value, _Result>::type
+    typename std::enable_if<!jfh::variadic::HasSignature<_OperationType, _Result, std::array<size_t, _Dimensions>, _Types...>::value, _Result>::type
 {
 	size_t count = std::get<0>(args).size();
 	auto iterator = ndim::makeMultiIterator(args);
 	for (size_t i = 0; i < count; ++i, ++iterator) {
 		auto tuple = std::tuple_cat(std::make_tuple(value), *iterator);
-		value = jfh::variadic::_callR(op, tuple, jfh::variadic::makeSequence(tuple));
+        value = jfh::variadic::_callR(op, tuple, jfh::variadic::makeSequence(tuple));
 	}
 	return value;
 }
 
 template <typename _Result, typename _OperationType, size_t _Dimensions, typename... _Types>
 auto accumulate(_OperationType op, _Result value, std::tuple<pointer<_Types, _Dimensions>...> args) // (manual break)
-	-> typename std::enable_if<jfh::variadic::HasSignature<_OperationType, _Result, std::array<size_t, _Dimensions>, _Types...>::value, _Result>::type
+    -> typename std::enable_if<jfh::variadic::HasSignature<_OperationType, _Result, std::array<size_t, _Dimensions>, _Types...>::value, _Result>::type
 // operation with argument for coordinates
 {
 	size_t count = std::get<0>(args).size();
 	auto iterator = ndim::makeMultiIterator(args);
 	for (size_t i = 0; i < count; ++i, ++iterator) {
 		auto tuple = std::tuple_cat(std::make_tuple(value, iterator.coords()), *iterator);
-		value = jfh::variadic::_callR(op, tuple, jfh::variadic::makeSequence(tuple));
+        value = jfh::variadic::_callR(op, tuple, jfh::variadic::makeSequence(tuple));
 	}
 	return value;
 }

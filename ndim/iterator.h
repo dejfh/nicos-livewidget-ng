@@ -50,7 +50,7 @@ class multiIterator
 	}
 
 	template <size_t... I>
-	std::tuple<_Ts &...> _deref(jfh::variadic::Sequence<I...>) const
+    std::tuple<_Ts &...> _deref(jfh::variadic::Sequence<I...>) const
 	{
 		return std::tuple<_Ts &...>(*std::get<I>(m_pointers)...);
 	}
@@ -75,7 +75,7 @@ public:
 
 	std::tuple<_Ts &...> operator*() const
 	{
-		return _deref(jfh::variadic::makeSequence(m_pointers));
+        return _deref(jfh::variadic::makeSequence(m_pointers));
 	}
 
 	multiIterator<_D, _Ts...> &operator++()

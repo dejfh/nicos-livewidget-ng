@@ -34,7 +34,7 @@ private:
 		template <typename ElementType, size_t Dimensionality>
 		void operator()(const std::shared_ptr<const DataFilter<ElementType, Dimensionality>> &predecessor, ndim::Sizes<Dimensionality> &sizes) const
 		{
-			sizes = hlp::notNull(predecessor)->prepare(m_progress);
+			sizes = hlp::throwIfNull(predecessor)->prepare(m_progress);
 		}
 	};
 

@@ -43,7 +43,7 @@ _T get_bound(_T *data, size_t size, size_t count_nan, double ratio)
 }
 
 template <typename _T>
-void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress)
+void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress)
 {
 	_T min = std::numeric_limits<_T>::max();
 	_T max = std::numeric_limits<_T>::lowest();
@@ -89,15 +89,15 @@ void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, d
 	progress.advanceProgress(analyzeDuration(size));
 }
 
-template void analyze(signed char *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(signed short *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(signed long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(signed long long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(unsigned char *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(unsigned short *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(unsigned long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(unsigned long long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(float *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
-template void analyze(double *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
+template void analyze(signed char *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(signed short *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(signed long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(signed long long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(unsigned char *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(unsigned short *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(unsigned long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(unsigned long long *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(float *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
+template void analyze(double *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
 
 } // namespace ndimdata

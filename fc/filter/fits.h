@@ -31,55 +31,96 @@ public:
 	virtual void resetRange() = 0;
 };
 
-template <typename _ElementType, size_t _Dimensionality>
-class LoaderHandler : public DataFilterHandlerBase<>
+template <typename ElementType, size_t Dimensionality>
+class Loader : public fc::FilterBase, public fc::DataFilter<ElementType, Dimensionality>, public LoaderControl<Dimensionality>
 {
+	struct Config {
+		QString filename;
+		bool isRangeSet;
+		::ndim::range<Dimensionality> range;
+	};
+
+	hlp::Threadsafe<Config> m_config;
+
 public:
-	using ResultElementType = _ElementType;
-	static const size_t ResultDimensionality = _Dimensionality;
-
-	QString filename;
-	bool isRangeSet;
-	::ndim::range<ResultDimensionality> range;
-
-	LoaderHandler(const QString &filename = QString())
-		: filename(filename)
-		, isRangeSet(false)
+	Loader(const QString &filename = QString())
 	{
+		m_config.unguardedMutable().filename = filename;
 	}
-	LoaderHandler(ndim::range<ResultDimensionality> range, const QString &filename = QString())
-		: filename(filename)
-		, isRangeSet(true)
-		, range(range)
+	Loader(ndim::range<Dimensionality> range, const QString &filename = QString())
 	{
+		m_config.unguardedMutable().range = range;
+		m_config.unguardedMutable().filename = filename;
 	}
 
-	ndim::sizes<ResultDimensionality> prepare(PreparationProgress &progress) const
+	QString filename() const override
 	{
+		return m_config.unguarded().filename;
+	}
+	void setFilename(QString filename) override
+	{
+		if (m_config.unguarded().filename == filename)
+			return;
+		this->invalidate();
+		this->m_config.lock()->filename = std::move(filename);
+	}
+
+	bool isRangeSet() const override
+	{
+		return this->m_config.unguarded().isRangeSet;
+	}
+	ndim::range<Dimensionality> range() const override
+	{
+		return this->m_config.unguarded().range;
+	}
+
+	void resetRange() override
+	{
+		if (!this->m_config.unguarded().isRangeSet)
+			return;
+		this->invalidate();
+		this->m_config.lock()->isRangeSet = false;
+	}
+	void setRange(ndim::range<Dimensionality> range) override
+	{
+		if (this->m_config.unguarded().isRangeSet && this->m_config.unguarded().range == range)
+			return;
+		this->invalidate();
+		auto guard = this->m_config.lock();
+		guard->range = range;
+		guard->isRangeSet = true;
+	}
+
+	// DataFilter interface
+public:
+	virtual ndim::sizes<Dimensionality> prepare(PreparationProgress &progress) const override
+	{
+		Config config = m_config.get();
 		progress.throwIfCancelled();
 
-		ndim::sizes<ResultDimensionality> sizes = range.sizes;
+		ndim::sizes<Dimensionality> sizes = config.range.sizes;
 
-		if (!isRangeSet)
-			sizes = fitshelper::FitsHelper(filename).dimensions<ResultDimensionality>();
+		if (!config.isRangeSet)
+			sizes = fitshelper::FitsHelper(config.filename).dimensions<Dimensionality>();
 
-		progress.addStep(10 * sizes.size(), QString("Loading file: %1").arg(QDir(filename).dirName()));
+		progress.addStep(10 * sizes.size(), QString("Loading file: %1").arg(QDir(config.filename).dirName()));
 		return sizes;
 	}
 
-	ndim::Container<ResultElementType, ResultDimensionality> getData(
-		ValidationProgress &progress, ndim::Container<ResultElementType, ResultDimensionality> *recycle) const
+	virtual ndim::Container<ElementType, Dimensionality> getData(
+		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
+		Config config = m_config.get();
 		progress.throwIfCancelled();
 
-		fitshelper::FitsHelper fits(filename);
-		ndim::sizes<ResultDimensionality> sizes = isRangeSet ? range.sizes : fits.dimensions<ResultDimensionality>();
+		fitshelper::FitsHelper fits(config.filename);
+		ndim::sizes<Dimensionality> sizes = config.isRangeSet ? config.range.sizes : fits.dimensions<Dimensionality>();
 
-		ndim::Container<ResultElementType, ResultDimensionality> result = ndim::makeMutableContainer(sizes, recycle);
-		ndim::pointer<ResultElementType, ResultDimensionality> dataPointer = result.mutableData();
+		ndim::Container<ElementType, Dimensionality> result = ndim::makeMutableContainer(sizes, recycle);
+		ndim::pointer<ElementType, Dimensionality> dataPointer = result.mutableData();
 
-		if (isRangeSet)
-			fits.read(dataPointer, range);
+		if (config.isRangeSet)
+			fits.read(dataPointer, config.range);
 		else
 			fits.read(dataPointer);
 
@@ -87,61 +128,6 @@ public:
 		progress.advanceStep();
 
 		return result;
-	}
-};
-
-template <typename ElementType, size_t Dimensionality>
-class Loader : public HandlerDataFilterBase<ElementType, Dimensionality, LoaderHandler<ElementType, Dimensionality>>,
-			   public LoaderControl<Dimensionality>
-{
-public:
-	Loader(const QString &filename = QString())
-		: HandlerDataFilterBase<ElementType, Dimensionality, LoaderHandler<ElementType, Dimensionality>>(
-			  LoaderHandler<ElementType, Dimensionality>(filename))
-	{
-	}
-	Loader(ndim::range<Dimensionality> range, const QString &filename = QString())
-		: HandlerDataFilterBase<ElementType, Dimensionality, LoaderHandler<ElementType, Dimensionality>>(
-			  LoaderHandler<ElementType, Dimensionality>(range, filename))
-	{
-	}
-
-	QString filename() const override
-	{
-		return this->m_handler.unguarded().filename;
-	}
-	void setFilename(QString filename) override
-	{
-		if (this->m_handler.unguarded().filename == filename)
-			return;
-		this->invalidate();
-		this->m_handler.lock()->filename = std::move(filename);
-	}
-
-	bool isRangeSet() const override
-	{
-		return this->m_handler.unguarded().isRangeSet;
-	}
-	ndim::range<Dimensionality> range() const override
-	{
-		return this->m_handler.unguarded().range;
-	}
-
-	void resetRange() override
-	{
-		if (!this->m_handler.unguarded().isRangeSet)
-			return;
-		this->invalidate();
-		this->m_handler.lock()->isRangeSet = false;
-	}
-	void setRange(ndim::range<Dimensionality> range) override
-	{
-		if (this->m_handler.unguarded().isRangeSet && this->m_handler.unguarded().range == range)
-			return;
-		this->invalidate();
-		auto guard = this->m_handler.lock();
-		guard->range = range;
-		guard->isRangeSet = true;
 	}
 };
 

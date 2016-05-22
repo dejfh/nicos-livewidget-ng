@@ -8,7 +8,7 @@
 
 #include "ipw/geometryhelper.h"
 
-#include "safecast.h"
+#include "helper/helper.h"
 
 namespace ipw
 {
@@ -29,10 +29,10 @@ SelectionRectItem::SelectionRectItem(Plot2DTransform *transform, QGraphicsItem *
 	for (int grip = 0; grip < GripCount; ++grip) {
 		HandleItem *gripItem = new HandleItem(transform, this);
 		m_gripItems[grip] = gripItem;
-		jfh::assert_result(connect(gripItem, SIGNAL(rightClicked(QPoint)), this, SLOT(gripRightClick(QPoint))));
-		jfh::assert_result(connect(gripItem, SIGNAL(dragStarted(QPointF)), this, SLOT(gripDragStart(QPointF))));
-		jfh::assert_result(connect(gripItem, SIGNAL(dragContinued(QPointF)), this, SLOT(gripDragContinue(QPointF))));
-		jfh::assert_result(connect(gripItem, SIGNAL(dragDone(QPointF)), this, SLOT(gripDragEnd(QPointF))));
+		hlp::assert_result(connect(gripItem, SIGNAL(rightClicked(QPoint)), this, SLOT(gripRightClick(QPoint))));
+		hlp::assert_result(connect(gripItem, SIGNAL(dragStarted(QPointF)), this, SLOT(gripDragStart(QPointF))));
+		hlp::assert_result(connect(gripItem, SIGNAL(dragContinued(QPointF)), this, SLOT(gripDragContinue(QPointF))));
+		hlp::assert_result(connect(gripItem, SIGNAL(dragDone(QPointF)), this, SLOT(gripDragEnd(QPointF))));
 		gripItem->setRect(QRectF(-12, -12, 24, 24));
 	}
 	m_gripItems[TopLeftGrip]->setCursor(Qt::SizeFDiagCursor);

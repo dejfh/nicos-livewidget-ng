@@ -14,7 +14,8 @@ SOURCES += \
 
 HEADERS += \
     filter/forward.h \
-    filter/correction.h
+    filter/correction.h \
+    filter/fixdim.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
@@ -28,7 +29,7 @@ HEADERS += \
     $$PWD/gethelper.h \
     $$PWD/chains/fitspile.h \
     $$PWD/chains/darkimageopenbeam.h \
-    $$PWD/chains/pixmapoutput.h \
+    $$PWD/chains/imageoutput.h \
     $$PWD/chains/profileplot.h \
     $$PWD/chains/zplot.h \
     $$PWD/chains/sourceselect.h \

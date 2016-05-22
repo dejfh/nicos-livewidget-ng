@@ -19,8 +19,6 @@
 
 #include "helper/helper.h"
 
-#include "safecast.h"
-
 namespace ipw
 {
 
@@ -32,7 +30,7 @@ ImagePlot::ImagePlot(QWidget *parent)
 	, m_trackerItem(0)
 	, m_selectionRectItem(0)
 	, m_selectionLineItem(0)
-	, m_selectionMode(SelectionZoom)
+	, m_selectionMode(SelectionMode::Zoom)
 	, m_validSelection(false)
 	, ui(new Ui::ImagePlot)
 {
@@ -119,17 +117,17 @@ void ImagePlot::setSelectionMode(ImagePlot::SelectionMode mode)
 {
 	m_selectionMode = mode;
 	switch (mode) {
-	case SelectionZoom:
+	case SelectionMode::Zoom:
 		m_trackerItem->setSelectionMode(TrackerItem::RectSelection);
 		m_selectionRectItem->setVisible(false);
 		m_selectionLineItem->setVisible(false);
 		break;
-	case SelectionRect:
+	case SelectionMode::Rect:
 		m_trackerItem->setSelectionMode(TrackerItem::RectSelection);
 		m_selectionRectItem->setVisible(m_validSelection);
 		m_selectionLineItem->setVisible(false);
 		break;
-	case SelectionLine:
+	case SelectionMode::Line:
 		m_trackerItem->setSelectionMode(TrackerItem::LineSelection);
 		m_selectionRectItem->setVisible(false);
 		m_selectionLineItem->setVisible(m_validSelection);
@@ -145,21 +143,21 @@ void ImagePlot::setSelectionMode(ImagePlot::SelectionMode mode)
 ImagePlot::GridMode ImagePlot::gridMode() const
 {
 	if (!m_gridItem->isVisible())
-		return GridDisable;
+		return GridMode::Disable;
 	else if (m_gridItem->useManualInterval())
-		return GridCustom;
+		return GridMode::Custom;
 	else
-		return GridAuto;
+		return GridMode::Auto;
 }
 
 void ImagePlot::setGridMode(ImagePlot::GridMode mode)
 {
 	switch (mode) {
-	case GridAuto:
+	case GridMode::Auto:
 		m_gridItem->setUseManualInterval(false);
 		m_gridItem->setVisible(true);
 		break;
-	case GridCustom:
+	case GridMode::Custom:
 		m_gridItem->setUseManualInterval(true);
 		m_gridItem->setVisible(true);
 		break;
@@ -197,8 +195,8 @@ void ImagePlot::setSelection(QRectF rect)
 	m_selectionRectItem->setRect(rect);
 	m_selectionLineItem->setLine(QLineF(rect.topLeft(), rect.bottomRight()));
 	m_validSelection = true;
-	m_selectionRectItem->setVisible(m_selectionMode == SelectionRect);
-	m_selectionLineItem->setVisible(m_selectionMode == SelectionLine);
+	m_selectionRectItem->setVisible(m_selectionMode == SelectionMode::Rect);
+	m_selectionLineItem->setVisible(m_selectionMode == SelectionMode::Line);
 }
 
 void ImagePlot::setSelection(QLineF line)
@@ -270,15 +268,15 @@ void ImagePlot::makeSelection(QRectF rect)
 {
 	QLineF line(rect.topLeft(), rect.bottomRight());
 	switch (m_selectionMode) {
-	case SelectionZoom:
+	case SelectionMode::Zoom:
 		setView(rect);
 		break;
-	case SelectionRect:
+	case SelectionMode::Rect:
 		setSelection(rect);
 		selectionChanged(rect);
 
 		break;
-	case SelectionLine:
+	case SelectionMode::Line:
 		setSelection(rect);
 		selectionChanged(line);
 		break;

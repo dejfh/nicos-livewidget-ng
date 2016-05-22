@@ -26,7 +26,7 @@ FindAxisOfRotation<_T>::FindAxisOfRotation(ndim::pointer<const _T, 2> img1, ndim
 }
 
 template <typename _T>
-void FindAxisOfRotation<_T>::run(AsyncPartialProgress progress)
+void FindAxisOfRotation<_T>::run(hlp::AsyncPartialProgress progress)
 {
 	progress.throwIfCancelled();
 	guess();
@@ -74,7 +74,7 @@ void shrink(ndim::pointer<_T_in, 2> in, ndim::pointer<_T_out, 2> out)
 }
 
 template <typename _T>
-void FindAxisOfRotation<_T>::runStep(AsyncPartialProgress progress)
+void FindAxisOfRotation<_T>::runStep(hlp::AsyncPartialProgress progress)
 {
 	progress.throwIfCancelled();
 	if (std::min(img1.width(), img1.height()) > 32) {
@@ -199,7 +199,7 @@ void FindAxisOfRotation<_T>::fillWithFlippedBack(ndim::pointer<_T, 2> out) const
 }
 
 template <typename _T>
-void FindAxisOfRotation<_T>::optimize(AsyncPartialProgress progress, double stepSize, int stepCount)
+void FindAxisOfRotation<_T>::optimize(hlp::AsyncPartialProgress progress, double stepSize, int stepCount)
 {
 	double stepAngle = stepSize * 2 / std::max(img1.width(), img1.height());
 	double center = axis.axisXOfEdge();

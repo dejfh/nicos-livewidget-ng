@@ -54,9 +54,9 @@ public:
 	{
 		this->invalidate();
 		auto guard = m_predecessors.lock();
-		this->unregisterSuccessor(guard.data());
+		this->unregisterAsSuccessor(guard.data());
 		guard.data() = std::move(predecessors);
-		this->registerSuccessor(guard.data());
+		this->registerAsSuccessor(guard.data());
 	}
 
 	// SwitchControl interface
@@ -93,14 +93,14 @@ public:
 	virtual ndim::sizes<Dimensionality> prepare(PreparationProgress &progress) const override
 	{
 		auto predecessor = selectedPredecessor();
-		hlp::notNull(predecessor);
+		hlp::throwIfNull(predecessor);
 		return predecessor->prepare(progress);
 	}
 	virtual ndim::Container<ElementType, Dimensionality> getData(
 		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		auto predecessor = selectedPredecessor();
-		hlp::notNull(predecessor);
+		hlp::throwIfNull(predecessor);
 		return predecessor->getData(progress, recycle);
 	}
 };

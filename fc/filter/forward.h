@@ -39,7 +39,7 @@ public:
 	virtual ndim::sizes<Dimensionality> prepare(PreparationProgress &progress) const override
 	{
 		auto predecessor = this->predecessor();
-		hlp::notNull(predecessor);
+		hlp::throwIfNull(predecessor);
 		return predecessor->prepare(progress);
 	}
 

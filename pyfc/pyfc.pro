@@ -8,24 +8,26 @@ include(../defaults.prf)
 
 include(../openmp.prf)
 
-LIBS += -lcfitsio
-
 SOURCES += \
     filterchain.cpp \
     pyfc.cpp
 
 HEADERS += \
-    pyfc.h \
-    filterchain.h \
     numpyinput.h \
-    pyfilter.h \
-    pyinvokefilter.h
+    invokefilter.h \
+    numpy.h
 
 DISTFILES += \
-    pyfc.sip \
     setup.py \
-    pyfilter.sip \
-    pyinvokefilter.sip
+    module_pyfc.sip \
+    filter.sip \
+    fixdimfilter.sip \
+    buffer.sip \
+    datastatistic.sip \
+    invokefilter.sip \
+    imageoutput.sip \
+    validator.sip \
+    numpyinput.sip
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD

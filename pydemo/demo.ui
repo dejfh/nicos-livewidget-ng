@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>888</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLine">
@@ -190,8 +190,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>266</width>
-          <height>151</height>
+          <width>177</width>
+          <height>138</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -246,11 +246,18 @@
          </item>
          <item>
           <widget class="QCheckBox" name="checkGrid">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
            <property name="text">
             <string>Grid</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonTest">
+           <property name="text">
+            <string>&amp;Test</string>
            </property>
           </widget>
          </item>

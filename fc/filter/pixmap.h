@@ -11,7 +11,7 @@
 
 #include "helper/helper.h"
 
-#include "safecast.h"
+#include "helper/helper.h"
 
 namespace fc
 {
@@ -36,8 +36,8 @@ public:
 
 	ndim::sizes<0> prepare(PreparationProgress &progress) const
 	{
-		auto sizes = hlp::notNull(std::get<0>(this->predecessors))->prepare(progress);
-		hlp::notNull(std::get<1>(this->predecessors))->prepare(progress);
+		auto sizes = hlp::throwIfNull(std::get<0>(this->predecessors))->prepare(progress);
+		hlp::throwIfNull(std::get<1>(this->predecessors))->prepare(progress);
 
 		progress.addStep(sizes.size(), description);
 
@@ -45,9 +45,6 @@ public:
 	}
 	ndim::Container<QImage> getData(ValidationProgress &progress, ndim::Container<QImage> *recycle) const
 	{
-		using jfh::assert_cast;
-		using jfh::cast_over_void;
-
 		std::pair<double, double> range;
 		auto data = std::get<0>(this->predecessors)->getData(progress);
 		fc::getData(progress, std::get<1>(this->predecessors), range);
@@ -55,7 +52,7 @@ public:
 		auto dataPointer = data.constData();
 
 		QImage image(int(dataPointer.width()), int(dataPointer.height()), QImage::Format_RGB32);
-		ndim::pointer<QRgb, 2> imagePointer(cast_over_void<QRgb *>(image.bits()), dataPointer.sizes);
+		ndim::pointer<QRgb, 2> imagePointer(hlp::cast_over_void<QRgb *>(image.bits()), dataPointer.sizes);
 		imagePointer.byte_strides[1] = hlp::byte_offset_t(image.bytesPerLine());
 		dataPointer.mirror(1);
 

@@ -15,7 +15,7 @@
 
 #include <cstdint>
 
-#include "asyncprogress.h"
+#include "helper/asyncprogress.h"
 
 #include "ndim/pointer.h"
 #include "ndim/range.h"
@@ -23,7 +23,7 @@
 #include "ndim/buffer.h"
 #include "ndim/algorithm_omp.h"
 
-#include "safecast.h"
+#include "helper/helper.h"
 
 struct FitsLoaderSettings;
 
@@ -128,7 +128,7 @@ public:
 	ndim::sizes<_D> dimensions()
 	{
 		QMutexLocker lock(getMutex());
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 		ndim::sizes<_D> dimensions;
 		_getSizes(dimensions.data(), _D);
 		return dimensions;
@@ -138,7 +138,7 @@ public:
 	void read(ndim::pointer<_T, _D> data)
 	{
 		QMutexLocker lock(getMutex());
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 		bool contiguous = data.isContiguous();
 		ndim::Buffer<_T, _D> buffer;
 		ndim::pointer<_T, _D> pointer = data;
@@ -158,7 +158,7 @@ public:
 	QMap<QString, QString> readUserKeys(QMap<QString, QString> *comments = 0) const
 	{
 		QMutexLocker lock(getMutex());
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 
 		return _readUserKeys(comments);
 	}
@@ -167,7 +167,7 @@ public:
 	void read(ndim::pointer<_T, _D> data, ndim::range<_D> range)
 	{
 		QMutexLocker lock(getMutex());
-		jfh::unused_variable(lock);
+		hlp::unused(lock);
 
 		bool contiguous = data.isContiguous();
 		ndim::Buffer<_T, _D> buffer;

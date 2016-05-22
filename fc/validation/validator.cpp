@@ -188,7 +188,7 @@ void Validator::prepareProc()
 		m_validationSteps = progress.steps;
 		m_validationDuration = progress.duration;
 		m_isQueueValid.store(true, std::memory_order_release);
-	} catch (const OperationCanceledException &) {
+	} catch (const hlp::OperationCanceledException &) {
 		return;
 	} catch (const std::exception &ex) {
 		m_hadException = true; // TODO: What happens on an exception?
@@ -206,7 +206,7 @@ void Validator::validationProc()
 	try {
 		m_activeValidatable->validate(m_progress);
 		assert(m_activeValidatable->isValid()); // TODO: Replace by exception?
-	} catch (const OperationCanceledException &) {
+	} catch (const hlp::OperationCanceledException &) {
 		return;
 	} catch (const std::exception &ex) {
 		m_hadException = true; // TODO: What happens on an exception?

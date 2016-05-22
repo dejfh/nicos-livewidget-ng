@@ -6,7 +6,7 @@
 #include "ndimdata/statistic.h"
 
 #include "ndim/pointer.h"
-#include "asyncprogress.h"
+#include "helper/asyncprogress.h"
 
 namespace ndimdata
 {
@@ -14,7 +14,7 @@ namespace ndimdata
 size_t analyzeDuration(size_t size);
 
 template <typename _T>
-void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, AsyncProgress<size_t> &progress);
+void analyze(_T *data, size_t size, DataStatistic &statistic, double roiRatio, double displayRatio, size_t binCount, hlp::AsyncProgress<size_t> &progress);
 
 } // namespace ndimdata
 

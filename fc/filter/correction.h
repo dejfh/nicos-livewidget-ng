@@ -47,7 +47,7 @@ public:
 public:
 	virtual ndim::sizes<ResultDimensionality> prepare(PreparationProgress &progress) const
 	{
-		ndim::Sizes<Dimensionality> sizes = hlp::notNull(this->predecessor())->prepare(progress);
+		ndim::Sizes<Dimensionality> sizes = hlp::throwIfNull(this->predecessor())->prepare(progress);
 		if (this->darkImage())
 			this->darkImage()->prepare(progress);
 		if (this->openBeam())

@@ -4,10 +4,10 @@
 #include <QtCore>
 #include <limits>
 
-#include "safecast.h"
+#include "helper/assertcast.h"
 #include "helper/fixedpoint.h"
 
-using jfh::assert_cast;
+using hlp::assert_cast;
 
 namespace tomo
 {

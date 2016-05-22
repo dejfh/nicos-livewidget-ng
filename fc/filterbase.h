@@ -79,20 +79,20 @@ public:
 
 protected:
 	template <typename PredecessorType>
-	void registerSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
+	void registerAsSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
 	{
 		if (predecessor)
 			predecessor->addSuccessor(this->shared_from_this());
 	}
 	template <typename PredecessorType>
-	void unregisterSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
+	void unregisterAsSuccessor(const std::shared_ptr<PredecessorType> &predecessor)
 	{
 		if (predecessor)
 			predecessor->removeSuccessor(this);
 	}
 
 	template <typename... PredecessorTypes>
-	void registerSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
+	void registerAsSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
 	{
 		std::weak_ptr<Successor> self = this->shared_from_this();
 		auto op = [&self](const std::shared_ptr<const Predecessor> &predecessor) {
@@ -102,7 +102,7 @@ protected:
 		hlp::variadic::forEachInTuple(op, predecessors);
 	}
 	template <typename... PredecessorTypes>
-	void unregisterSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
+	void unregisterAsSuccessor(const std::tuple<PredecessorTypes...> &predecessors)
 	{
 		auto op = [this](const std::shared_ptr<const Predecessor> &predecessor) {
 			if (predecessor)
@@ -112,7 +112,7 @@ protected:
 	}
 
 	template <typename PredecessorType>
-	void registerSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
+	void registerAsSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
 	{
 		std::weak_ptr<Successor> self = this->shared_from_this();
 		for (const std::shared_ptr<PredecessorType> &predecessor : predecessors)
@@ -120,7 +120,7 @@ protected:
 				predecessor->addSuccessor(self);
 	}
 	template <typename PredecessorType>
-	void unregisterSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
+	void unregisterAsSuccessor(const QVector<std::shared_ptr<PredecessorType>> &predecessors)
 	{
 		for (const std::shared_ptr<PredecessorType> &predecessor : predecessors)
 			if (predecessor)
@@ -167,7 +167,7 @@ public:
 	}
 	~HandlerFilterBase()
 	{
-		this->unregisterSuccessor(m_handler.unguarded().predecessors);
+		this->unregisterAsSuccessor(m_handler.unguarded().predecessors);
 	}
 
 	PredecessorTuple predecessors() const
@@ -185,8 +185,8 @@ public:
 		if (m_handler.unguarded().predecessors == predecessors)
 			return;
 		this->invalidate();
-		this->unregisterSuccessor(m_handler.unguarded().predecessors);
-		this->registerSuccessor(predecessors);
+		this->unregisterAsSuccessor(m_handler.unguarded().predecessors);
+		this->registerAsSuccessor(predecessors);
 		m_handler.lock().data().predecessors = predecessors;
 	}
 	template <size_t I = 0>
@@ -195,8 +195,8 @@ public:
 		if (std::get<I>(m_handler.unguarded().predecessors) == predecessor)
 			return;
 		this->invalidate();
-		this->unregisterSuccessor(std::get<I>(m_handler.unguarded().predecessors));
-		this->registerSuccessor(predecessor);
+		this->unregisterAsSuccessor(std::get<I>(m_handler.unguarded().predecessors));
+		this->registerAsSuccessor(predecessor);
 		std::get<I>(m_handler.lock().data().predecessors) = predecessor;
 	}
 
@@ -207,8 +207,8 @@ public:
 	void setHandler(HandlerType handler)
 	{
 		this->invalidate();
-		this->unregisterSuccessor(m_handler.unguarded().predecessors);
-		this->registerSuccessor(handler.predecessors);
+		this->unregisterAsSuccessor(m_handler.unguarded().predecessors);
+		this->registerAsSuccessor(handler.predecessors);
 		m_handler.lock().data() = handler;
 	}
 };

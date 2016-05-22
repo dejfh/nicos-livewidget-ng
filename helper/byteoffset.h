@@ -27,11 +27,6 @@ struct byte_offset_t {
         return *this;
     }
 
-    operator bool() const
-    {
-        return value;
-    }
-
     template <typename Type>
     static byte_offset_t inArray()
     {
@@ -189,6 +184,15 @@ operator/=(byte_offset_t &offset, ValueType value)
 {
     offset.value /= value;
     return offset;
+}
+
+inline static operator==(byte_offset_t a, byte_offset_t b)
+{
+    return a.value == b.value;
+}
+inline static operator!=(byte_offset_t a, byte_offset_t b)
+{
+    return a.value != b.value;
 }
 
 // template <typename ValueType>

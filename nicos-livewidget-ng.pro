@@ -7,6 +7,7 @@ SUBDIRS += \
     tomotest \
     tomorun \
     pyfc \
+    pyfcfits \
     pyipw \
     pydemo \
     pyfctest

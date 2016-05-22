@@ -51,13 +51,13 @@ public:
 	{
 		return m_predecessors.get();
 	}
-	void setPredecessors(const QVector<std::shared_ptr<const DataFilter<ElementType, PredecessorDimensionality>>> &predecessors)
+	void setPredecessors(QVector<std::shared_ptr<const DataFilter<ElementType, PredecessorDimensionality>>> predecessors)
 	{
 		this->invalidate();
 		auto guard = m_predecessors.lock();
-		this->unregisterSuccessor(guard.data());
-		guard.data() = std::move(predecessors);
-		this->registerSuccessor(guard.data());
+		this->unregisterAsSuccessor(guard.data());
+		predecessors.swap(guard.data()); // Order of destruction ensures that teferences to old predecessors are released after the lock has been released.
+		this->registerAsSuccessor(guard.data());
 	}
 
 	// DataFilter interface
@@ -71,8 +71,8 @@ public:
 		bool first = true;
 		for (const auto &predecessor : predecessors) {
 			if (first)
-				sizes = hlp::notNull(predecessor)->prepare(progress);
-			else if (sizes != hlp::notNull(predecessor)->prepare(progress))
+				sizes = hlp::throwIfNull(predecessor)->prepare(progress);
+			else if (sizes != hlp::throwIfNull(predecessor)->prepare(progress))
 				throw ::std::out_of_range("Pile predecessors have different sizes.");
 		}
 		m_predecessorSizes = sizes;
@@ -93,7 +93,7 @@ public:
 		size_t index = 0;
 		for (auto it = predecessors.constBegin(), end = predecessors.constEnd(); it != end; ++it, ++index) {
 			const std::shared_ptr<const DataFilter<ElementType, PredecessorDimensionality>> &predecessor = *it;
-			hlp::notNull(predecessor);
+			hlp::throwIfNull(predecessor);
 			fc::getData(progress, predecessor, data.removeDimension(insertDimension, index));
 		}
 		return result;

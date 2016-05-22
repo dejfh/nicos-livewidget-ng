@@ -1,16 +1,22 @@
-#ifndef NUMPYINPUT
-#define NUMPYINPUT
+#ifndef PYFC_NUMPYINPUT_H
+#define PYFC_NUMPYINPUT_H
 
 #include "fc/datafilterbase.h"
 
 #include <Python.h>
 
-#include <numpy/arrayobject.h>
+#include "numpy.h"
+
+#include "ndim/numpy.h"
 
 #include "helper/helper.h"
 #include "helper/threadsafe.h"
 
 #include "helper/python/gilhelper.h"
+
+#include <iostream>
+
+namespace pyfc {
 
 template <size_t _Dimensionality>
 class NumpyInput : public fc::FilterBase, virtual public fc::DataFilter<float, _Dimensionality>
@@ -20,50 +26,47 @@ public:
 	static const size_t Dimensionality = _Dimensionality;
 
 private:
-	hlp::Threadsafe<PyObject *> m_data;
-	mutable PyObject *m_current;
+	hlp::Threadsafe<hlp::python::Ref> m_data;
+	mutable hlp::python::Ref m_current;
 
 public:
 	~NumpyInput()
 	{
-		PyObject *data = m_data.unguarded();
-		if (data == nullptr && m_current == nullptr)
+		hlp::python::Ref &data = m_data.unguardedMutable();
+		if (!data && !m_current)
 			return;
 
-		hlp::python::EnsureGil gil;
+		hlp::python::Gil gil;
+		hlp::unused(gil);
 
-		Py_XDECREF(data);
-		Py_XDECREF(m_current);
+		data.release();
+		m_current.release();
 	}
 
-	PyObject *data() const
+	hlp::python::Ref data() const
 	{
-		auto guard = m_data.lockConst();
-		PyObject *data = guard.data();
-		if (data == nullptr)
+		auto &data = m_data.unguarded();
+
+		if (data)
 			return nullptr;
 
-		hlp::python::EnsureGil gil;
+		hlp::python::Gil gil;
+		hlp::unused(gil);
 
-		Py_INCREF(data);
 		return data;
 	}
 
-	void setData(PyObject *data)
+	void setData(const hlp::python::Ref &data, const hlp::python::Gil & = hlp::python::Gil())
 	{
-		hlp::python::EnsureGil gil;
-
-		data = PyArray_FromAny(data, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, Dimensionality, NPY_ARRAY_ALIGNED, nullptr);
-
-		PyObject *toDecrease = nullptr;
+		hlp::python::Ref array =
+			PyArray_FromAny(data.ptr, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, Dimensionality, NPY_ARRAY_ALIGNED, nullptr);
 
 		{
 			auto guard = m_data.lock();
-			toDecrease = guard.data();
-			guard.data() = data;
+			std::swap(array, guard.data()); // Don't decrease refcount with active data lock. Destructor may be slow.
 		}
 
-		Py_XDECREF(toDecrease);
+		// Old guard.data will be dereferenced here.
 	}
 
 	// DataFilter interface
@@ -71,22 +74,21 @@ public:
 	virtual ndim::sizes<Dimensionality> prepare(fc::PreparationProgress &progress) const override
 	{
 		{
-			hlp::python::EnsureGil gil;
-			Py_XDECREF(m_current); // Decrease outside of lock! May block.
+			hlp::python::Gil gil;
+			hlp::unused(gil);
+
+			m_current.release(); // Decreasing refcount may be slow. Do outside lock!
 			{
 				auto guard = m_data.lockConst();
-				m_current = guard.data();
-				Py_XINCREF(m_current); // Increase inside of lock! Ref may decrease immediately after unlock. Incref does not block.
+				m_current = guard.data(); // Increasing refcount is fast. Is okay inside lock.
 			}
 		}
 		progress.throwIfCancelled();
-		hlp::notNull(m_current);
+		hlp::throwIfNull(m_current.ptr);
 
-		auto array = hlp::cast_over_void<PyArrayObject *>(m_current);
+		auto array = hlp::cast_over_void<PyArrayObject *>(m_current.ptr);
 
-		ndim::Sizes<Dimensionality> sizes;
-		std::copy_n(PyArray_SHAPE(array), Dimensionality, sizes.begin());
-		return sizes;
+		return ndim::getShape<Dimensionality>(array);
 	}
 
 	virtual ndim::Container<ElementType, Dimensionality> getData(
@@ -94,18 +96,18 @@ public:
 	{
 		hlp::unused(progress, recycle);
 
-		auto array = hlp::cast_over_void<PyArrayObject *>(m_current);
-		ndim::Sizes<Dimensionality> shape;
-		std::copy_n(PyArray_SHAPE(array), Dimensionality, shape.begin());
-		ndim::Strides<Dimensionality> byte_strides;
+		auto array = hlp::cast_over_void<PyArrayObject *>(m_current.ptr);
 
-		npy_intp *strides = PyArray_STRIDES(array);
-		std::transform(strides, strides + Dimensionality, byte_strides.begin(), [](npy_intp v) { return hlp::byte_offset_t(v); });
+		auto shape = ndim::getShape<Dimensionality>(array);
+		auto strides = ndim::getStrides<Dimensionality>(array);
+
 		ElementType *data = static_cast<ElementType *>(PyArray_DATA(array));
 
-		ndim::pointer<const ElementType, Dimensionality> ptr(data, shape, byte_strides);
-		return ndim::makeConstRefContainer(ptr);
+		ndim::pointer<const ElementType, Dimensionality> ptr(data, shape, strides);
+		return ptr;
 	}
 };
 
-#endif // NUMPYINPUT
+} // namespace pyfc
+
+#endif // PYFC_NUMPYINPUT_H

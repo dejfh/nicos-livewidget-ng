@@ -24,18 +24,19 @@ class RangeSelectWidget : public QWidget
 	Q_OBJECT
 
 public:
-	enum RangeMode { RangeAuto, RangeFull, RangeManual };
+	enum class RangeMode { Auto, Full, Manual };
 
 	explicit RangeSelectWidget(QWidget *parent = 0);
 	~RangeSelectWidget();
 
-	void setStatistic(const QSharedPointer<const ndimdata::DataStatistic> &statistic);
+	void setStatistic(ndimdata::DataStatistic statistic);
 
 	std::pair<double, double> bounds() const;
 	double low() const;
 	double high() const;
 	void setBound1(double bound);
 	void setBound2(double bound);
+	void setRange(double a, double b);
 
 	RangeMode rangeMode() const;
 	void setRangeMode(RangeMode mode);
@@ -65,7 +66,7 @@ private:
 
 	QwtPlotPicker *rangePicker;
 
-	QSharedPointer<const ndimdata::DataStatistic> m_statistic;
+	ndimdata::DataStatistic m_statistic;
 	bool m_updating;
 	double m_bound1;
 	double m_bound2;

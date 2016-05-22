@@ -5,10 +5,9 @@
 
 #include <QString>
 
-#include "asyncprogress.h"
+#include "helper/asyncprogress.h"
 
 #include "variadic.h"
-#include "safecast.h"
 
 /*!
  * \ingroup Filter
@@ -104,7 +103,7 @@ public:
 	virtual bool isValid() const = 0;
 };
 
-class PreparationProgress : public AsyncProgress<size_t>
+class PreparationProgress : public hlp::AsyncProgress<size_t>
 {
 public:
 	virtual void appendValidatable(std::shared_ptr<const Validatable> fc) = 0;
@@ -119,10 +118,12 @@ public:
  * #### Threading
  * All methods are threadsafe and may be called by \b any thread.
  * */
-class ValidationProgress : public AsyncProgress<size_t>
+class ValidationProgress : public hlp::AsyncProgress<size_t>
 {
 protected:
 	std::atomic<size_t> m_step;
+
+	std::vector<std::shared_ptr<const void>> m_forcedRefs;
 
 public:
 	ValidationProgress()
@@ -145,6 +146,7 @@ public:
 	{
 		AsyncProgress::reset();
 		m_step = 0;
+		m_forcedRefs.clear();
 	}
 	void cancel()
 	{
@@ -158,6 +160,11 @@ public:
 	size_t currentStep()
 	{
 		return m_step;
+	}
+
+	void holdRef(std::shared_ptr<const void> ptr)
+	{
+		m_forcedRefs.push_back(std::move(ptr));
 	}
 };
 
