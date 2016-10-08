@@ -2,6 +2,7 @@ class QtValidator : public QObject
 {
 %TypeHeaderCode
 #include "fc/validation/qtvalidator.h"
+#include "pyfc/pyfilter.h"
 using QtValidator = fc::validation::QtValidator;
 %End
 
