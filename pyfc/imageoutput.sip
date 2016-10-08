@@ -3,6 +3,8 @@ class ImageOutputChain {
 #include "fc/chains/imageoutput.h"
 using ImageOutputChain = fc::chains::ImageOutput;
 %End
+	private:
+	ImageOutputChain(const ImageOutputChain& ); // Disable allocation as array
 public:
 	ImageOutputChain();
 
@@ -27,6 +29,9 @@ public:
 	%End
 
 	Filter2d roiFilter() const;
+	%MethodCode
+		sipRes = Filter2d::create(sipCpp->roiFilter());
+	%End
 
 	StatisticBuffer statistic() const;
 	ImageBuffer image() const;

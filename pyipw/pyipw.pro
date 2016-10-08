@@ -19,9 +19,14 @@ unix {
 
 DISTFILES += \
     setup.py \
-    module_pyipw.sip
+    module_pyipw.sip \
+    demo_ipw.py \
+    demo_range.py
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD
 
 INSTALLS += setup
+
+FORMS += \
+    demo_ipw.ui

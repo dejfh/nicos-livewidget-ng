@@ -16,7 +16,7 @@ Tomography::Tomography(size_t sinogramResolution, size_t maxAngleCount, float ce
 	ThreadableGLWidget *widget = new ThreadableGLWidget();
 	this->m_glWidget = std::unique_ptr<QGLWidget>(widget);
 	widget->makeCurrent();
-	this->m_reconstructor = std::unique_ptr<Reconstructor>(new Reconstructor(widget->context()));
+	this->m_reconstructor = std::unique_ptr<Reconstructor>(new Reconstructor(&widget->context()));
 	m_reconstructor->prepare(sinogramResolution, maxAngleCount, center);
 	widget->doneCurrent();
 }

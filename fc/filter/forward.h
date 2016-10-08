@@ -47,6 +47,7 @@ public:
 		ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
 		auto predecessor = this->predecessor();
+		hlp::throwIfNull(predecessor);
 		return predecessor->getData(progress, recycle);
 	}
 };

@@ -84,7 +84,10 @@ class RangeSelectWidget : public QWidget
 %TypeHeaderCode
 #include "pyipw.h"
 %End
+private:
+	RangeSelectWidget(const RangeSelectWidget&);
 
+public:
 	explicit RangeSelectWidget(QWidget *parent = 0);
 	~RangeSelectWidget();
 

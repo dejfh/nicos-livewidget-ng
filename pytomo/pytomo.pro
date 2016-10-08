@@ -1,35 +1,26 @@
 TEMPLATE = lib
-TARGET = pyfilterchain
+TARGET = pytomo
 CONFIG += staticlib
 
 include(../defaults.prf)
 
-# LIBS += -lfilterchain -lpython2.7
-
 include(../openmp.prf)
+
+LIBS += -lcfitsio
 
 SOURCES += \
     filterchain.cpp \
     pyfc.cpp
 
 HEADERS += \
+    pyfc.h \
+    filterchain.h \
     numpyinput.h \
-    invokefilter.h \
-    numpy.h \
-    pyfilter.h \
-    shared_ptr.h
+    filter2d.h
 
 DISTFILES += \
-    setup.py \
-    module_pyfc.sip \
-    filter.sip \
-    fixdimfilter.sip \
-    buffer.sip \
-    datastatistic.sip \
-    invokefilter.sip \
-    imageoutput.sip \
-    validator.sip \
-    numpyinput.sip
+    pyfc.sip \
+    setup.py
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD
