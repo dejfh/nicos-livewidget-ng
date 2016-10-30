@@ -3,9 +3,6 @@ TARGET = pyfilterchain
 CONFIG += staticlib
 
 include(../defaults.prf)
-
-# LIBS += -lfilterchain -lpython2.7
-
 include(../openmp.prf)
 
 SOURCES += \
@@ -29,7 +26,9 @@ DISTFILES += \
     invokefilter.sip \
     imageoutput.sip \
     validator.sip \
-    numpyinput.sip
+    numpyinput.sip \
+    demo_fc.py \
+    link_debug.cmd
 
 setup.files = $$DISTFILES
 setup.path = $$OUT_PWD
@@ -38,3 +37,6 @@ INSTALLS += setup
 
 unix: INCLUDEPATH += /usr/include/python2.7
 else: INCLUDEPATH += C:/msys64/mingw64/include/python2.7
+
+FORMS += \
+    demo_fc.ui

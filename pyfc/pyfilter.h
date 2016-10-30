@@ -14,8 +14,6 @@ using FilterVar = InheritPtr<const fc::DataFilterVar<ElementType>>;
 template <typename ElementType, size_t Dimensionality>
 using FilterNd = InheritPtr<const fc::DataFilter<ElementType, Dimensionality>, FilterVar<ElementType>>;
 
-using Validatable = InheritPtr<const fc::Validatable>;
-
 } // namespace pyfc
 
 using FilterVar = pyfc::FilterVar<float>;
@@ -25,6 +23,6 @@ using Filter2d = pyfc::FilterNd<float, 2>;
 using Filter3d = pyfc::FilterNd<float, 3>;
 using Filter4d = pyfc::FilterNd<float, 4>;
 
-using Validatable = pyfc::Validatable;
+using Validatable = pyfc::InheritPtr<const fc::Validatable>;
 
 #endif // PYFC_PYFILTER_H

@@ -15,8 +15,7 @@ HEADERS += \
     $$PWD/sinogramfile.h \
     $$PWD/sinogramfileheader.h \
     $$PWD/threadableglwidget.h \
-    tomography.h \
-    filediscovery.h
+    tomography.h
 
 SOURCES += \
     $$PWD/findaxisofrotation.cpp \
@@ -24,5 +23,4 @@ SOURCES += \
     $$PWD/shaders.cpp \
     $$PWD/sinogramfile.cpp \
     $$PWD/threadableglwidget.cpp \
-    tomography.cpp \
-    filediscovery.cpp
+    tomography.cpp

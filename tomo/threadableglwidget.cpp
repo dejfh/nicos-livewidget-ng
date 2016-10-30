@@ -15,6 +15,10 @@ tomo::ThreadableGLWidget::ThreadableGLWidget(const QGLFormat &format, QWidget *p
 {
 }
 
+tomo::ThreadableGLWidget::~ThreadableGLWidget()
+{
+}
+
 void tomo::ThreadableGLWidget::paintEvent(QPaintEvent *)
 {
 }

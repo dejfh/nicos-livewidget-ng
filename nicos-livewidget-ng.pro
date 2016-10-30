@@ -2,20 +2,14 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     fc \
-    tomo \
-    fctest \
-    tomotest \
-    tomorun \
     pyfc \
     pyfcfits \
     pyipw \
-    pydemo \
-    pyfctest
+    tomo \
+    pytomo \
+    pydemo
 
-fctest.depends = fc
 pyfc.depends = fc
-pydemo.depends = pyfc pyipw
-tomotest.depends = tomo
-tomorun.depends = tomo
-pyfctest.depends = pyfc
+pyipw.depends = pyfc pyfcfits
 pytomo.depends = tomo
+pydemo.depends = pyfc pyfcfits pyipw pytomo

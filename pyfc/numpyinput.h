@@ -14,8 +14,6 @@
 
 #include "helper/python/gilhelper.h"
 
-#include <iostream>
-
 namespace pyfc {
 
 template <size_t _Dimensionality>
@@ -56,10 +54,17 @@ public:
 		return data;
 	}
 
-	void setData(const hlp::python::Ref &data, const hlp::python::Gil & = hlp::python::Gil())
+	void setData(PyObject* data, const hlp::python::Gil & = hlp::python::Gil())
 	{
 		hlp::python::Ref array =
-			PyArray_FromAny(data.ptr, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, Dimensionality, NPY_ARRAY_ALIGNED, nullptr);
+			PyArray_FromAny(data, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, Dimensionality, NPY_ARRAY_ALIGNED | NPY_ARRAY_FORCECAST, nullptr);
+
+		if (PyErr_Occurred()) {
+			PyErr_PrintEx(1);
+			return;
+		}
+
+		this->invalidate();
 
 		{
 			auto guard = m_data.lock();
@@ -94,7 +99,9 @@ public:
 	virtual ndim::Container<ElementType, Dimensionality> getData(
 		fc::ValidationProgress &progress, ndim::Container<ElementType, Dimensionality> *recycle) const override
 	{
-		hlp::unused(progress, recycle);
+		hlp::unused(recycle);
+
+		progress.throwIfCancelled();
 
 		auto array = hlp::cast_over_void<PyArrayObject *>(m_current.ptr);
 

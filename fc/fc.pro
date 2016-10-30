@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = filterchain
 CONFIG += staticlib
-#QT       -= core gui
+
 
 include(../defaults.prf)
 
@@ -25,7 +25,6 @@ HEADERS += \
     $$PWD/filter.h \
     $$PWD/filterbase.h \
     $$PWD/validation/validator.h \
-    $$PWD/validation/watcher.h \
     $$PWD/gethelper.h \
     $$PWD/chains/fitspile.h \
     $$PWD/chains/darkimageopenbeam.h \
@@ -56,9 +55,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/validation/validator.cpp \
-    $$PWD/validation/watcher.cpp \
-    $$PWD/chains/darkimageopenbeam.cpp \
-    $$PWD/validation/qtwatcher.cpp
+    $$PWD/chains/darkimageopenbeam.cpp
 
 DISTFILES += \
     $$PWD/filter.dox

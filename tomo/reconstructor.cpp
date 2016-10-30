@@ -21,6 +21,8 @@
 
 #include "ndim/algorithm.h"
 
+#include <iostream>
+
 const float PI = 3.1415926535897932384626433832795f;
 
 namespace tomo
@@ -58,6 +60,7 @@ public:
 	float m_sinogramCenter;
 
 	float m_stepSize;
+	float m_lastSuccessStepSize;
 	float m_likelihood;
 	float m_likelihoodTest;
 
@@ -189,6 +192,26 @@ Reconstructor::~Reconstructor()
 	clear();
 }
 
+int Reconstructor::sinogramResolution() const
+{
+	return m->m_resolutionSinogram;
+}
+
+int Reconstructor::reconstructionResolution() const
+{
+	return m->m_resolutionReconstruction;
+}
+
+int Reconstructor::sinogramCapacity() const
+{
+	return m->m_capacitySinogram;
+}
+
+int Reconstructor::sinogramFilled() const
+{
+	return m->m_filledSinogram;
+}
+
 void Reconstructor::prepare(int resolution, int sinogram_capacity, float center)
 {
 	m->m_resolutionSinogram = resolution;
@@ -214,7 +237,7 @@ void Reconstructor::setOpenBeam(ndim::pointer<const float, 1> data)
 	assert(data.isContiguous()); // TODO: Use pixel buffers to allow other layout.
 	GL::assert_glError();
 
-	glBindTexture(GL_TEXTURE_1D, m->m_programs.textures[GL::Tex_Intensity]);
+	glBindTexture(GL_TEXTURE_1D, m->m_programs.textures[GL::Tex_OpenBeam]);
 	GL::assert_glError();
 	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, m->m_resolutionSinogram, GL_RED, GL_FLOAT, data.data);
 	GL::assert_glError();
@@ -246,20 +269,22 @@ void Reconstructor::appendSinogram(ndim::pointer<const float, 2> data, ndim::poi
 		unpackbuffer.create();
 		unpackbuffer.bind();
 		GL::assert_glError();
-		unpackbuffer.allocate(int(data.size() * sizeof(quint16)));
-		GL::assert_glError();
-		ndim::pointer<quint16, 2> buffer_data =
-			ndim::make_ptr_contiguous(static_cast<quint16 *>(unpackbuffer.map(QGLBuffer::WriteOnly)), data.width(), data.height());
-		GL::assert_glError();
+		unpackbuffer.allocate(int(data.size() * sizeof(float)));
+		ndim::pointer<float, 2> buffer_data =
+			ndim::make_ptr_contiguous(static_cast<float *>(unpackbuffer.map(QGLBuffer::WriteOnly)), data.width(), data.height());
 		ndim::copy(data, buffer_data);
 		unpackbuffer.unmap();
 
 		GL::assert_glError();
 
 		glBindTexture(GL_TEXTURE_2D, m->m_programs.textures[GL::Tex_SinoOrg]);
+		GL::assert_glError();
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, m->m_filledSinogram, m->m_resolutionSinogram, GLsizei(count), GL_RED, GL_FLOAT, 0);
+		GL::assert_glError();
 		glBindTexture(GL_TEXTURE_2D, 0);
+		GL::assert_glError();
 		unpackbuffer.release();
+		GL::assert_glError();
 	}
 	GL::assert_glError();
 	{
@@ -304,15 +329,17 @@ void Reconstructor::appendSinogram(ndim::pointer<const float, 2> data, ndim::poi
 void Reconstructor::setReconstruction(ndim::pointer<const float, 2> data)
 {
 	m->m_stepSize = 1.f / m->m_resolutionReconstruction / 10.f;
+	m->m_lastSuccessStepSize = m->m_stepSize;
 
 	assert(data.width() == data.height());
 	assert(data.width() == m->m_resolutionReconstruction);
 	int resolution = int(data.width());
 	assert(data.isContiguous());
-	glBindTexture(GL_TEXTURE_2D, m->m_programs.textures[GL::Tex_ReconTest]);
+	glBindTexture(GL_TEXTURE_2D, m->m_programs.textures[GL::Tex_Recon]);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, resolution, resolution, GL_RED, GL_FLOAT, data.data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	m->mask_toReconTest_fromRecon();
 	m->project_toSinoTest_fromReconTest();
 
 	acceptTestDirect();
@@ -323,6 +350,7 @@ void Reconstructor::setReconstruction(ndim::pointer<const float, 2> data)
 void Reconstructor::guess()
 {
 	m->m_stepSize = 1.f / m->m_resolutionReconstruction / 10.f;
+	m->m_lastSuccessStepSize = m->m_stepSize;
 
 	m->guess_toRecon_fromSinoOrg();
 	m->mask_toReconTest_fromRecon();
@@ -333,22 +361,30 @@ void Reconstructor::guess()
 	GL::assert_glError();
 }
 
-bool Reconstructor::step()
+bool Reconstructor::step(bool force)
 {
 	m->sum_toReconTest_fromReconAndGradient(m->m_stepSize);
 	m->project_toSinoTest_fromReconTest();
-
 	m->likelihood_fromSinoAndSinoTest();
 	m->sum_Likelihood();
 
 	if (m->m_likelihoodTest < m->m_likelihood) {
 		m->m_stepSize /= 16;
-		//		m->accept_test();
-		//		m->gradient_FromSinoAndSinoRecon();
+
+		if (force) {
+			m->accept_test();
+			m->gradient_FromSinoAndSinoRecon();
+		}
+
+		std::cout << "step success - likelihood: " << m->m_likelihoodTest << " < " << m->m_likelihood << " next step size: " << m->m_stepSize
+				  << std::endl;
 		GL::assert_glError();
 		return false;
-	} else
-		m->m_stepSize *= 2;
+	}
+
+	m->m_lastSuccessStepSize = m->m_stepSize;
+	m->m_stepSize *= 2;
+	std::cout << "step fail - likelihood: " << m->m_likelihoodTest << " >= " << m->m_likelihood << " next step size: " << m->m_stepSize << std::endl;
 
 	m->accept_test();
 	m->gradient_FromSinoAndSinoRecon();
@@ -361,45 +397,18 @@ void Reconstructor::clear()
 {
 	m->m_programs.clearTextures();
 	m->m_filledSinogram = 0;
-	GL::assert_glError();
-}
-
-void Reconstructor::readTexture(const ndim::pointer<quint16, 2> data, Reconstructor::ReconTextures texture)
-{
-	GL::Textures tex = static_cast<GL::Textures>(texture);
-	assert(m->m_programs.textureHeight(tex) == data.height());
-	assert(m->m_programs.textureWidth(tex) == data.width());
-	m->gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m->m_programs.textures[tex], 0);
-	assert(m->gl.glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-	glViewport(0, 0, GLsizei(data.width()), GLsizei(data.height()));
-
-	glReadPixels(0, 0, GLsizei(data.width()), GLsizei(data.height()), GL_RED, GL_UNSIGNED_SHORT, data.data);
-	GL::assert_glError();
 }
 
 void Reconstructor::readTexture(const ndim::pointer<float, 2> data, Reconstructor::ReconTextures texture)
 {
 	GL::Textures tex = static_cast<GL::Textures>(texture);
-	assert(m->m_programs.textureHeight(tex) == data.height());
-	assert(m->m_programs.textureWidth(tex) == data.width());
+	assert(m->m_programs.textureHeight(tex) >= data.height());
+	assert(m->m_programs.textureWidth(tex) >= data.width());
 	m->gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m->m_programs.textures[tex], 0);
 	assert(m->gl.glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	glViewport(0, 0, GLsizei(data.width()), GLsizei(data.height()));
 
 	glReadPixels(0, 0, GLsizei(data.width()), GLsizei(data.height()), GL_RED, GL_FLOAT, data.data);
-	GL::assert_glError();
-}
-
-void Reconstructor::readReconstruction(const ndim::pointer<float, 2> data)
-{
-	assert(data.width() == m->m_resolutionReconstruction && data.height() == m->m_resolutionReconstruction);
-	assert(data.isContiguous());
-
-	m->gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m->m_programs.textures[GL::Tex_Recon], 0);
-	assert(m->gl.glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-	glViewport(0, 0, m->m_resolutionReconstruction, m->m_resolutionReconstruction);
-
-	glReadPixels(0, 0, m->m_resolutionReconstruction, m->m_resolutionReconstruction, GL_RED, GL_FLOAT, data.data);
 	GL::assert_glError();
 }
 

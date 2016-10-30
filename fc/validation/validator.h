@@ -26,12 +26,12 @@ namespace validation
 class Validator : private Successor
 {
 	// Accessed only by MAIN THREAD
-	std::shared_ptr<int> m_dummy_ptr; //!< Dummy shared pointer. Needed to register this validator as a successor.
+	std::shared_ptr<Successor> m_self_successor; //!< Shared pointer to self without ownership. Needed to register this validator as a successor.
 
 	std::vector<std::weak_ptr<const Validatable>> m_validatables; //!< List of Validatables to be validated by this \ref Validator
 
-	bool m_enabled;   //!< True, if the validator should automatically validate.
-	bool m_isWorking; //!< True, if there is a worker thread.
+	bool m_enabled;		 //!< True, if the validator should automatically validate.
+	bool m_isWorking;	//!< True, if there is an active worker thread.
 	bool m_rebuildQueue; //!< True, if the preparation should rerun after the current validation returns.
 
 	// Accessed by MAIN THREAD and WORKER THREAD
@@ -41,7 +41,8 @@ class Validator : private Successor
 
 	std::atomic<bool>
 		m_isQueueValid; //!< True, if the current queue is valid (After preparation, before invalidation). Reset by main thread, set by worker thread.
-	std::deque<std::shared_ptr<const Validatable>> m_queue; //!< Current queue of validatables. Written by worker thread. Valid if \ref m_isQueueValid is true.
+	std::deque<std::shared_ptr<const Validatable>>
+		m_queue;				   //!< Current queue of validatables. Written by worker thread. Valid if \ref m_isQueueValid is true.
 	QStringList m_validationSteps; //!< Descriptions of current validation steps. Written by worker thread. Valid if \ref m_isQueueValid is true.
 	size_t m_validationDuration;   //!< Duration of the current validation queue. Written by worker thread. Valid if \ref m_isQueueValid is true.
 
@@ -53,6 +54,12 @@ class Validator : private Successor
 
 protected:
 	virtual void invokeFinished() = 0;
+	virtual void onPrepareProc()
+	{
+	}
+	virtual void onValidationProc()
+	{
+	}
 	virtual void onValidationStarted() = 0;
 	virtual void onValidationStep() = 0;
 	virtual void onValidationComplete() = 0;
@@ -83,8 +90,6 @@ private:
 private:
 	void prepareProc();
 	void validationProc();
-	void invalidate(const Predecessor *predecessor);
-	void predecessorDeconstructed(const Predecessor *predecessor);
 
 	// Successor interface
 private:

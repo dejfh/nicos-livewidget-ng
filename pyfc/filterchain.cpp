@@ -4,8 +4,6 @@
 
 //#include <pyfc/numpy.h>
 
-//#include <iostream>
-
 //#include <QImage>
 
 //#include "helper/helper.h"

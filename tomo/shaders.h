@@ -22,7 +22,7 @@ class Reconstructor;
 enum TextureTypes { TexT_Sino, TexT_Volume, TexT_SinoLine, TexT_SinoColumn, TexT_SinoColumnMatrix, TexT_Count };
 
 enum Textures {
-	Tex_Intensity,
+	Tex_OpenBeam,
 	Tex_SinoOrg,
 	Tex_AngleMatrix,
 	Tex_ReconTest,

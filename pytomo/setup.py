@@ -65,41 +65,30 @@ class moc_build_ext(sip_build_ext):
 
 extra_include_dirs = [".."]
 extra_lib_dirs = [qt_lib_dir, './../out']
-extra_libs = ["pytomo", "tomo", "python2.7", "cfitsio"]
+extra_libs = ["pytomo", "tomography", "python2.7"]
 
 extra_include_dirs.extend(path.join(qt_inc_dir, subdir)
         for subdir in ['', 'QtCore', 'QtGui'])
 
 if sys.platform == 'darwin':
-    extra_libs.extend(['QtCore', 'QtGui'])
-    extra_include_dirs.append("/usr/local/cfitsio/include")
+    extra_libs.extend(['QtCore', 'QtGui', 'QtOpenGL'])
 elif sys.platform == 'win32':
-    extra_libs.extend(['QtCore4', 'QtGui4'])
+    extra_libs.extend(['QtCore4', 'QtGui4', 'QtOpenGL4', 'Opengl32'])
 else:
-    extra_libs.extend(['QtCore', 'QtGui'])
+    extra_libs.extend(['QtCore', 'QtGui', 'QtOpenGL'])
     dist = platform.linux_distribution()[0].strip()  # old openSUSE appended a space here :(
-    if dist == 'openSUSE':
-        extra_include_dirs.extend(["/usr/include/libcfitsio0", "/usr/include/cfitsio"])
-    elif dist == 'Fedora':
-        extra_include_dirs.append("/usr/include/cfitsio")
-    elif dist in ['Ubuntu', 'LinuxMint', 'debian', 'CentOS']:
-        pass
-    else:
-        print("WARNING: Don't know where to find headers and libraries for your distribution")
-        # still try to build with usable defaults
-
-sources = []
 
 setup(
-    name='nicostomography',
+    name='nicos_tomography',
     version='1',
     ext_modules=[
-    Extension('nicostomography',
-          ['pyfc.sip'] + sources,
+    Extension('nicos_tomography',
+          ['module_pytomo.sip'],
           include_dirs=['.'] + extra_include_dirs,
           library_dirs=extra_lib_dirs,
           libraries=extra_libs,
-          extra_compile_args=['-std=c++11', '-Wall', '-Wextra', '-pedantic'],,
+          extra_compile_args=['-std=c++11', '-fopenmp', '-Wall', '-Wextra', '-pedantic', '-ggdb'],
+          extra_link_args=['-fopenmp', '-ggdb'],
           ),
     ],
     cmdclass={'build_ext': moc_build_ext}

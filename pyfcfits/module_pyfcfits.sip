@@ -10,14 +10,59 @@ struct Fits1d : Filter1d {
 %TypeHeaderCode
 #include <pyfc/pyfilter.h>
 #include <fc/filter/fits.h>
-using Fits1d = pyfc::InheritPtr<fc::filter::fits::Loader<float, 1>, pyfc::FilterNd<float, 1>>;
+using Fits1d = pyfc::FinalPtr<fc::filter::fits::Loader<float, 1>, Filter1d>;
 %End
-private:
-Fits1d(const Fits1d& ); // Disable allocation as array
-public:
 Fits1d();
 %MethodCode
-	sipCpp = Fits1d::create(std::make_shared<fc::filter::fits::Loader<float, 1>>());
+	sipCpp = pyfc::make_final_ptr<Fits1d>();
+%End
+void setFilename(const QString &a0);
+%MethodCode
+	(*sipCpp)->setFilename(*a0);
+%End
+};
+
+struct Fits2d : Filter2d {
+%TypeHeaderCode
+#include <pyfc/pyfilter.h>
+#include <fc/filter/fits.h>
+using Fits2d = pyfc::FinalPtr<fc::filter::fits::Loader<float, 2>, Filter2d>;
+%End
+Fits2d();
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Fits2d>();
+%End
+void setFilename(const QString &a0);
+%MethodCode
+	(*sipCpp)->setFilename(*a0);
+%End
+};
+
+struct Fits3d : Filter3d {
+%TypeHeaderCode
+#include <pyfc/pyfilter.h>
+#include <fc/filter/fits.h>
+using Fits3d = pyfc::FinalPtr<fc::filter::fits::Loader<float, 3>, Filter3d>;
+%End
+Fits3d();
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Fits3d>();
+%End
+void setFilename(const QString &a0);
+%MethodCode
+	(*sipCpp)->setFilename(*a0);
+%End
+};
+
+struct Fits4d : Filter4d {
+%TypeHeaderCode
+#include <pyfc/pyfilter.h>
+#include <fc/filter/fits.h>
+using Fits4d = pyfc::FinalPtr<fc::filter::fits::Loader<float, 4>, Filter4d>;
+%End
+Fits4d();
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Fits4d>();
 %End
 void setFilename(const QString &a0);
 %MethodCode

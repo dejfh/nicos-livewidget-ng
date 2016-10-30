@@ -87,26 +87,16 @@
       <number>5</number>
      </property>
      <item>
-      <widget class="QComboBox" name="comboKeyword"/>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioSourceDarkImage">
+      <widget class="QRadioButton" name="radioSourceOriginal">
        <property name="text">
-        <string>Dark image</string>
+        <string>Original Sinogram</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radioSourceOpenBeam">
+      <widget class="QRadioButton" name="radioSourceReconstruction">
        <property name="text">
-        <string>Open Beam</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioSourceImage">
-       <property name="text">
-        <string>Image</string>
+        <string>Reconstruction</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -114,14 +104,40 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnPrint">
+      <widget class="QRadioButton" name="radioSourceSinogram">
        <property name="text">
-        <string>print</string>
+        <string>Reconstructed Sinogram</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioSourceLikelihood">
+       <property name="text">
+        <string>Likelihood</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioSourceGradient">
+       <property name="text">
+        <string>Gradient</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QListWidget" name="listSourceFiles"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboKeyword"/>
      </item>
     </layout>
    </widget>
@@ -191,7 +207,7 @@
           <x>0</x>
           <y>0</y>
           <width>177</width>
-          <height>138</height>
+          <height>167</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -257,7 +273,23 @@
          <item>
           <widget class="QPushButton" name="buttonTest">
            <property name="text">
-            <string>&amp;Test</string>
+            <string>&amp;Run Reconstruction</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonForce">
+           <property name="text">
+            <string>&amp;Force Step</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

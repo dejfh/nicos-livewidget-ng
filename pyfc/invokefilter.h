@@ -20,8 +20,6 @@
 
 #include "helper/python/gilhelper.h"
 
-#include <iostream>
-
 namespace pyfc
 {
 
@@ -111,22 +109,6 @@ public:
 		hlp::python::Gil gil;
 		hlp::unused(gil);
 
-		auto printer = [](const ndim::ContainerVar<float> &container, PyArrayObject *array) {
-			ndim::PointerVar<const float> ptr = container.constData();
-			size_t D = ptr.shape.size();
-			assert(D == 2);
-			ndim::IndicesVar i(D, 0);
-			std::vector<npy_intp> ai(D, 0);
-			for (i[1] = 0; i[1] < ptr.shape[1]; ++i[1]) {
-				ai[1] = i[1];
-				for (i[0] = 0; i[0] < ptr.shape[0]; ++i[0]) {
-					ai[0] = i[0];
-					std::cout << '(' << i[0] << ", " << i[1] << ") : ";
-					std::cout << ptr[i] << " / " << *(float*)PyArray_GetPtr(array, ai.data()) << std::endl;
-				}
-			}
-		};
-
 		auto config = m_config.get();
 		progress.throwIfCancelled();
 
@@ -136,13 +118,12 @@ public:
 		for (const auto &predecessor : config.predecessors) {
 			ndim::ContainerVar<float> data = predecessor->getDataVar(progress);
 			hlp::python::Ref array = ndim::makePyArrayRef(data.constData(), gil);
-			printer(data, (PyArrayObject *)(array.ptr));
 			PyTuple_SetItem(arglist.ptr, i++, array.steal());
 		}
 
 		hlp::python::Ref result = PyObject_CallObject(config.getDataProc.ptr, arglist.ptr);
 
-		result = PyArray_FromAny(result.ptr, PyArray_DescrFromType(NPY_FLOAT), 0, 0, NPY_ARRAY_ALIGNED, nullptr);
+		result = PyArray_FromAny(result.ptr, PyArray_DescrFromType(NPY_FLOAT), 0, 0, NPY_ARRAY_ALIGNED | NPY_ARRAY_FORCECAST, nullptr);
 		PyArrayObject *array = (PyArrayObject *)result.ptr;
 
 		ndim::ContainerVar<ElementType> container;
@@ -152,8 +133,6 @@ public:
 
 		hlp::python::Ref containerRef = ndim::makePyArrayRef(container.mutableData(), gil);
 		PyArray_CopyInto((PyArrayObject *)containerRef.ptr, array);
-
-		printer(container, (PyArrayObject *)(array));
 
 		return container;
 	}

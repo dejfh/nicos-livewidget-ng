@@ -30,6 +30,26 @@ inline hlp::python::Ref makePyArrayRef(const ndim::PointerVar<const float> &ptr,
         const_cast<float *>(ptr.data), NPY_ARRAY_ALIGNED, nullptr);
 }
 
+template <size_t Dimensionality>
+inline hlp::python::Ref makePyArrayRef(const ndim::pointer<float, Dimensionality> &ptr, const hlp::python::Gil & = hlp::python::Gil())
+{
+    std::vector<npy_intp> dims(ptr.shape.cbegin(), ptr.shape.cend());
+    std::vector<npy_intp> strides;
+    std::transform(ptr.strides.cbegin(), ptr.strides.cend(), std::back_inserter(strides), [](hlp::byte_offset_t stride) { return stride.value; });
+    return PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, dims.data(), strides.data(),
+        const_cast<float *>(ptr.data), NPY_ARRAY_ALIGNED | NPY_ARRAY_WRITEABLE, nullptr);
+}
+
+template <size_t Dimensionality>
+inline hlp::python::Ref makePyArrayRef(const ndim::pointer<const float, Dimensionality> &ptr, const hlp::python::Gil & = hlp::python::Gil())
+{
+    std::vector<npy_intp> dims(ptr.sizes.cbegin(), ptr.sizes.cend());
+    std::vector<npy_intp> strides;
+    std::transform(ptr.byte_strides.cbegin(), ptr.byte_strides.cend(), std::back_inserter(strides), [](hlp::byte_offset_t stride) { return stride.value; });
+    return PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrFromType(NPY_FLOAT), Dimensionality, dims.data(), strides.data(),
+        const_cast<float *>(ptr.data), NPY_ARRAY_ALIGNED, nullptr);
+}
+
 inline ndim::ShapeVar getShapeVar(PyArrayObject *array)
 {
     size_t dimensionality = PyArray_NDIM(array);

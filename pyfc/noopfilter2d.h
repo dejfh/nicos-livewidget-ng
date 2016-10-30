@@ -1,8 +1,6 @@
 #ifndef PYFC_NOOPFILTER2D_H
 #define PYFC_NOOPFILTER2D_H
 
-#include <iostream>
-
 #include "pyfc/skipable2d.h"
 
 class NoopFilter2d : public Skipable2d
@@ -21,13 +19,11 @@ public:
 
 inline std::shared_ptr<const fc::DataFilter<float, 2>> NoopFilter2d::getFilter() const
 {
-	std::cout << "getFilter()" << std::endl;
 	return std::shared_ptr<const fc::DataFilter<float, 2>>(nullptr);
 }
 
 inline std::shared_ptr<fc::SkipableDataFilter<float, 2>> NoopFilter2d::getSkipableFilter() const
 {
-	std::cout << "getSkipableFilter()" << std::endl;
 	return std::shared_ptr<fc::SkipableDataFilter<float, 2>>(nullptr);
 }
 

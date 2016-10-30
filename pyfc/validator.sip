@@ -33,3 +33,20 @@ public:
 	// void state(size_t &progress, size_t &duration, size_t &step, size_t &stepCount, QString &description);
 	QStringList descriptions() const;
 };
+
+class QtWatcher : public QObject
+{
+%TypeHeaderCode
+#include "fc/validation/qtwatcher.h"
+#include "pyfc/pyfilter.h"
+using QtWatcher = fc::validation::QtWatcher;
+%End
+
+public:
+	explicit QtWatcher(QtValidator *validator, Validatable &validatable, QObject *parent = 0);
+
+signals:
+	void validated();
+	void invalidated();
+};
+

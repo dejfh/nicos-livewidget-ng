@@ -123,7 +123,7 @@ class ValidationProgress : public hlp::AsyncProgress<size_t>
 protected:
 	std::atomic<size_t> m_step;
 
-	std::vector<std::shared_ptr<const void>> m_forcedRefs;
+	std::vector<std::shared_ptr<const volatile void>> m_forcedRefs;
 
 public:
 	ValidationProgress()
@@ -162,7 +162,7 @@ public:
 		return m_step;
 	}
 
-	void holdRef(std::shared_ptr<const void> ptr)
+	void holdRef(std::shared_ptr<const volatile void> ptr)
 	{
 		m_forcedRefs.push_back(std::move(ptr));
 	}

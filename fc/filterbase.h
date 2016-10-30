@@ -42,7 +42,7 @@ protected:
 		auto invalidateOrRemove = [this](const std::weak_ptr<Successor> &weak) {
 			auto successor = weak.lock();
 			if (!successor)
-				return true;
+				return true; // Remove weak pointers to successors that don't exist anymore.
 			successor->predecessorInvalidated(this);
 			return false;
 		};

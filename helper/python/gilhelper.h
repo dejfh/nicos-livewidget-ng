@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <cstddef>
+#include <utility>
 
 namespace hlp
 {
@@ -15,83 +16,118 @@ struct Gil {
     {
         gilState = PyGILState_Ensure();
     }
+    Gil(const Gil &) = delete;
+    Gil(Gil &&) = delete;
+
     ~Gil()
     {
         PyGILState_Release(gilState);
     }
 };
 
+/**
+ * @brief Reference to a python object, automatically increasing and decreasing refcounts.
+ *
+ * This structure alwas owns the reference it contains.
+ * To use Ref as an argument for a borrowing parameter use the value fo the @ref ptr field.
+ * To use Ref as an arguemtn for a stealing parameter either use @ref inc() to increase the refcount and keep a reference,
+ * or use @ref steal() to transfer the ownership and reset the Ref.
+ */
 struct Ref {
     PyObject *ptr;
 
-    Ref()
+    Ref(std::nullptr_t = nullptr)
         : ptr(nullptr)
     {
     }
-    Ref(std::nullptr_t)
-        : ptr(nullptr)
-    {
-    }
+    /**
+     * @brief Ref Constructor. Initializes referencing to a given ptr.
+     * @param inc If true, increases recount. Defaults to false.
+     */
     Ref(PyObject *ptr, bool inc = false)
         : ptr(ptr)
     {
         if (inc)
             Py_XINCREF(ptr);
     }
-    Ref(const Ref &other)
-        : ptr(other.ptr)
-    {
-        Py_XINCREF(ptr);
-    }
-    Ref(Ref &&other)
-        : ptr(other.ptr)
-    {
-        other.ptr = nullptr;
-    }
-    ~Ref()
+    /**
+     * @brief release Reduces refcount.
+     */
+    void release()
     {
         Py_XDECREF(ptr);
+        ptr = nullptr;
     }
+    /**
+     * @brief ~Ref Destructor. Reduces refcount.
+     */
+    ~Ref()
+    {
+        release();
+    }
+
+    /**
+     * @brief steal Resets ptr to null and returns the previous value. Leaves refcount unchanged.
+     * @return
+     */
     PyObject *steal()
     {
         PyObject *result = ptr;
         ptr = nullptr;
         return result;
     }
-    PyObject *inc()
+    /**
+     * @brief inc
+     * @return
+     */
+    PyObject *inc() const
+    {
+        return Ref(*this).steal();
+    }
+
+    /**
+     * @brief Ref Move constructor. Steals from other. Leaves refcount unchanged.
+     */
+    Ref(Ref &&other)
+        : ptr(other.steal())
+    {
+    }
+    /**
+     * @brief Ref Copy constructor. Copies from other. Increases refcount.
+     */
+    Ref(const Ref &other)
+        : ptr(other.ptr)
     {
         Py_XINCREF(ptr);
-        return ptr;
     }
-    void release()
+    /**
+     * @brief operator = Move assignment. Steals from other. Reduces refcount of old ptr and leaves assigned refcount unchagned.
+     */
+    Ref &operator=(Ref &&other)
     {
-        Py_XDECREF(ptr);
-        ptr = nullptr;
+        release();
+        ptr = other.steal();
+        return *this;
     }
+    /**
+     * @brief operator = Copy assignment. Copies from other. Increases refcount of copied ptr and reduces refcount of old ptr.
+     */
     Ref &operator=(const Ref &other)
     {
         if (ptr == other.ptr)
             return *this;
-        Py_XINCREF(other.ptr);
-        Py_XDECREF(ptr);
-        ptr = other.ptr;
+        *this = Ref(other);
         return *this;
     }
-    Ref &operator=(Ref &&other)
+
+    Ref &reset(PyObject *ptr = nullptr, bool inc = false)
     {
-        Py_XDECREF(ptr);
-        ptr = other.steal();
-        return *this;
-    }
-    Ref &operator=(PyObject *other)
-    {
-        if (ptr == other)
+        if (this->ptr == ptr && inc)
             return *this;
-        Py_XINCREF(other);
-        Py_XDECREF(ptr);
-        ptr = other;
+        *this = Ref(ptr, inc);
         return *this;
     }
+
     operator bool() const
     {
         return ptr;

@@ -1,8 +1,8 @@
 #include "fc/validation/validator.h"
 
-#include <iostream>
-
 #include <QStringList>
+
+#include <iostream>
 
 namespace fc
 {
@@ -10,9 +10,8 @@ namespace fc
 namespace validation
 {
 
-class ValidatorPreparationProgress : public PreparationProgress
+struct ValidatorPreparationProgress : PreparationProgress
 {
-public:
 	std::deque<std::shared_ptr<const Validatable>> queue;
 	QStringList steps;
 	size_t duration;
@@ -41,6 +40,13 @@ public:
 	}
 };
 
+template <typename T>
+std::shared_ptr<T> make_not_owning_shared_ptr(T* target)
+{
+	std::shared_ptr<char> dummy = std::make_shared<char>();
+	return std::shared_ptr<T>(dummy, target);
+}
+
 Validator::Validator()
 	: m_enabled(false)
 	, m_isWorking(false)
@@ -49,7 +55,7 @@ Validator::Validator()
 	, m_isQueueValid(false)
 	, m_hadException(false)
 {
-	m_dummy_ptr = std::make_shared<int>();
+	m_self_successor = make_not_owning_shared_ptr<Successor>(this);
 }
 
 Validator::~Validator()
@@ -101,8 +107,7 @@ void Validator::add(std::shared_ptr<const Validatable> validatable)
 {
 	m_validatables.emplace_back(validatable);
 	m_rebuildQueue = true;
-	std::shared_ptr<Successor> successor(m_dummy_ptr, this);
-	validatable->addSuccessor(successor);
+	validatable->addSuccessor(m_self_successor);
 	onInvalidated();
 }
 
@@ -175,6 +180,7 @@ void Validator::validate()
 }
 void Validator::prepareProc()
 {
+	this->onPrepareProc();
 	ValidatorPreparationProgress progress;
 	try {
 		for (const std::weak_ptr<const Validatable> &weak : m_preparationValidatables) {
@@ -203,6 +209,7 @@ void Validator::prepareProc()
 
 void Validator::validationProc()
 {
+	this->onValidationProc();
 	try {
 		m_activeValidatable->validate(m_progress);
 		assert(m_activeValidatable->isValid()); // TODO: Replace by exception?
@@ -235,10 +242,10 @@ void Validator::finished()
 
 void Validator::predecessorInvalidated(const Predecessor *predecessor)
 {
-	if (m_isWorking && (!m_activeValidatable || predecessor == m_activeValidatable.get()))
-		restart(false);
-	else
+	if (!m_isWorking || (m_activeValidatable && predecessor == m_activeValidatable.get()))
 		m_rebuildQueue = true;
+	else
+		restart(false);
 	m_hadException = false;
 	this->invokeFinished();
 	onInvalidated();

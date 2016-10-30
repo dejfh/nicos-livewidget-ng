@@ -26,6 +26,9 @@ signals:
 	void validationComplete();
 	void invalidated();
 
+	void prepareProcCalled();
+	void validationProcCalled();
+
 public slots:
 
 private slots:
@@ -34,6 +37,8 @@ private slots:
 	// Validator interface
 protected:
 	virtual void invokeFinished() override;
+	virtual void onPrepareProc() override;
+	virtual void onValidationProc() override;
 	virtual void onValidationStarted() override;
 	virtual void onValidationStep() override;
 	virtual void onValidationComplete() override;

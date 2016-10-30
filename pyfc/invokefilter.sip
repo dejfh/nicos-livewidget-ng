@@ -16,7 +16,7 @@ void setPredecessors(PyObject *predecessors);
 %MethodCode
 	QVector<std::shared_ptr<const fc::DataFilterVar<float>>> predecessors;
 	for (size_t i = 0, ii = PyList_GET_SIZE(a0); i < ii; ++i) {
-		auto *predecessor = reinterpret_cast<std::shared_ptr<const fc::DataFilterVar<float>> *>(sipConvertToType(
+		auto *predecessor = reinterpret_cast<FilterVar *>(sipConvertToType(
 			PyList_GET_ITEM(a0, i), sipType_FilterVar, 0, 0, 0, &sipIsErr));
 		predecessors.append(*predecessor);
 	}

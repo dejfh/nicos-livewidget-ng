@@ -87,6 +87,9 @@ class RangeSelectWidget : public QWidget
 private:
 	RangeSelectWidget(const RangeSelectWidget&);
 
+signals:
+	void rangeChanged(double low, double high);
+
 public:
 	explicit RangeSelectWidget(QWidget *parent = 0);
 	~RangeSelectWidget();

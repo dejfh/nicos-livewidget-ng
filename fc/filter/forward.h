@@ -31,7 +31,10 @@ public:
 		if (m_predecessor.unguarded() == predecessor)
 			return;
 		this->invalidate();
-		m_predecessor.lock().data() = std::move(predecessor);
+		auto guard = m_predecessor.lock();
+		this->unregisterAsSuccessor(guard.data());
+		guard->swap(predecessor);
+		this->registerAsSuccessor(guard.data());
 	}
 
 	// DataFilter interface

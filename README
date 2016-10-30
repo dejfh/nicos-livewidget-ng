@@ -14,8 +14,9 @@
 + pyfctest:	TestCases for the Classes of FilterChain-Wrapper (C++)
 + pyipw:	Python ImagePlotWidget-Wrapper (Python-C++)
 + tomo:		Tomography Library using openGL (C++)
++ pytomo:	Python Tomography-Wrapper (Python-C++)
 + tomotest:	Test-Application for the Tomography Library (C++)
-+ tw:		TomographyWidget (C++)
++ tw:		TomographyWidget (C++), obsolete - use python Version
 
 ==== Building ====
 
@@ -26,9 +27,14 @@ make
 
 == Build Python Modules ==
 
-cd ./pyipw/   and   cd ./pyfc/
+cd <modulepath>
 ./setup.py build
 
+modulepathes:
+./pyfc
+./pyipw
+./pytomo
+./pyfcfits
 
 ==== Run Python Demo ====
 

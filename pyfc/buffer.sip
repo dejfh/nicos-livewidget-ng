@@ -4,7 +4,7 @@ struct Validatable /Abstract/ {
 %End
 bool isValid();
 %MethodCode
-	sipRes = PyBool_FromLong((*sipCpp)->isValid());
+	sipRes = (*sipCpp)->isValid();
 %End
 };
 
@@ -17,20 +17,79 @@ struct Buffer1d : Filter1d, Validatable {
 public:
 Buffer1d();
 %MethodCode
-	sipCpp = new Buffer1d(std::make_shared<fc::filter::Buffer<float, 1>>());
+	sipCpp = pyfc::make_final_ptr<Buffer1d>();
 %End
 Buffer1d(const Filter1d &a0);
 %MethodCode
-	sipCpp = new Buffer1d(std::make_shared<fc::filter::Buffer<float, 1>>());
+	sipCpp = pyfc::make_final_ptr<Buffer1d>();
 	(*sipCpp)->setPredecessor(*a0);
 %End
 void setPredecessor(const Filter1d &a0);
 %MethodCode
 	(*sipCpp)->setPredecessor(*a0);
 %End
-bool isValid();
+};
+struct Buffer2d : Filter2d, Validatable {
+%TypeHeaderCode
+	#include <pyfc/pyfilter.h>
+	#include <fc/filter/buffer.h>
+	using Buffer2d = pyfc::FinalPtr<fc::filter::Buffer<float, 2>, Filter2d, Validatable>;
+%End
+public:
+Buffer2d();
 %MethodCode
-	sipRes = PyBool_FromLong((*sipCpp)->isValid());
+	sipCpp = pyfc::make_final_ptr<Buffer2d>();
+%End
+Buffer2d(const Filter2d &a0);
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Buffer2d>();
+	(*sipCpp)->setPredecessor(*a0);
+%End
+void setPredecessor(const Filter2d &a0);
+%MethodCode
+	(*sipCpp)->setPredecessor(*a0);
+%End
+};
+struct Buffer3d : Filter3d, Validatable {
+%TypeHeaderCode
+	#include <pyfc/pyfilter.h>
+	#include <fc/filter/buffer.h>
+	using Buffer3d = pyfc::FinalPtr<fc::filter::Buffer<float, 3>, Filter3d, Validatable>;
+%End
+public:
+Buffer3d();
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Buffer3d>();
+%End
+Buffer3d(const Filter3d &a0);
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Buffer3d>();
+	(*sipCpp)->setPredecessor(*a0);
+%End
+void setPredecessor(const Filter3d &a0);
+%MethodCode
+	(*sipCpp)->setPredecessor(*a0);
+%End
+};
+struct Buffer4d : Filter4d, Validatable {
+%TypeHeaderCode
+	#include <pyfc/pyfilter.h>
+	#include <fc/filter/buffer.h>
+	using Buffer4d = pyfc::FinalPtr<fc::filter::Buffer<float, 4>, Filter4d, Validatable>;
+%End
+public:
+Buffer4d();
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Buffer4d>();
+%End
+Buffer4d(const Filter4d &a0);
+%MethodCode
+	sipCpp = pyfc::make_final_ptr<Buffer4d>();
+	(*sipCpp)->setPredecessor(*a0);
+%End
+void setPredecessor(const Filter4d &a0);
+%MethodCode
+	(*sipCpp)->setPredecessor(*a0);
 %End
 };
 
@@ -46,7 +105,7 @@ private:
 public:
 bool isValid();
 %MethodCode
-	sipRes = PyBool_FromLong((*sipCpp)->isValid());
+	sipRes = (*sipCpp)->isValid();
 %End
 QImage image();
 %MethodCode

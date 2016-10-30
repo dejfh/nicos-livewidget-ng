@@ -13,8 +13,6 @@
 #include "helper/array.h"
 #include "helper/byteoffset.h"
 
-#include <iostream>
-
 namespace ndim
 {
 

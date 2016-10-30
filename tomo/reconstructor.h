@@ -63,6 +63,8 @@ public:
 
 	int sinogramResolution() const;
 	int reconstructionResolution() const;
+	int sinogramCapacity() const;
+	int sinogramFilled() const;
 
 	void prepare(int resolution, int sinogram_capacity, float center);
 	void setOpenBeam(ndim::pointer<const float, 1> data);
@@ -71,12 +73,10 @@ public:
 	void setReconstruction(ndim::pointer<const float, 2> data);
 
 	void guess();
-	bool step();
+	bool step(bool force);
 	void clear();
 
-	void readTexture(ndim::pointer<quint16, 2> data, ReconTextures texture);
 	void readTexture(ndim::pointer<float, 2> data, ReconTextures texture);
-	void readReconstruction(ndim::pointer<float, 2> data);
 
 	float stepSize() const;
 	void setStepSize(float value);

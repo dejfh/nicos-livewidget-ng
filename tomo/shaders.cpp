@@ -15,21 +15,10 @@ namespace GL
 {
 
 /*
- * Texutres
- * Intensity: openBeam intensity - may be optimized in later versions
- * Sino: sinogram
- * Recon: reconstructed volume
- * SinoRecon: sinogram of reconstructed volume
- * ReconTest: candidate for next reconstruction
- * SinoReconTest: sinogram of candidate for next reconstruction
- * texLikelihood: quality of reconstruction per pixel
- * texSum: summed quality
- * texGradient: quality gradient of the reconstruction
- *
  * texAngleMatrix: transforms x coord in sinogram and depth coord to coord in reconstruction
  * */
 
-const char *texture_names[Tex_Count] = {"texIntensity", "texSinoOrg", "texAngleMatrix", "texReconTest", "texSinoTest", "texLikelihood", "texSum",
+const char *texture_names[Tex_Count] = {"texOpenBeam", "texSinoOrg", "texAngleMatrix", "texReconTest", "texSinoTest", "texLikelihood", "texSum",
 	"texSinoRecon", "texRecon", "texGradient"};
 
 const char *variable_names[Var_Count] = {"step", "sumStep", "center", "sinoRange", "depth", "projection"};
@@ -65,18 +54,24 @@ const char code_headerFragment[] =
 	"uniform float layer;"
 	"uniform float depth;"
 	"uniform float projection;"
-	"uniform sampler1D texAngleMatrix;" // angles of the current sinogram
-	"uniform sampler2D texSinoOrg;"		// original sinogram
-	"uniform sampler1D texIntensity;"   // openBeam intensity
-	"uniform sampler2D texReconTest;"   // next volume of reconstruction
-	"uniform sampler2D texSinoTest;"	// next sinogram of reconstruction
-	"uniform sampler2D texLikelihood;"
-	"uniform sampler2D texSinoRecon;" // current sinogram of reconstruction
-	"uniform sampler2D texRecon;"	 // volume of reconstruction
-	"uniform sampler2D texGradient;"  // quality gradient
 
-	//	"in vec2 coord0;"
-	//	"out vec3 gl_FragColor;"
+	"uniform sampler1D texAngleMatrix;" // angles of the current sinogram
+	"uniform sampler2D texSinoOrg;"		// original sinogram: z_d
+	"uniform sampler1D texOpenBeam;"	// openBeam intensity: φ_d
+	"uniform sampler2D texReconTest;"   // next volume of reconstruction: y_b
+	"uniform sampler2D texSinoTest;"	// next sinogram of reconstruction: ln(λ_d / φ_d)
+	"uniform sampler2D texLikelihood;"  // quality of reconstruction: f(y, φ)
+	"uniform sampler2D texSinoRecon;"   // current sinogram of reconstruction: ln(λ_d / φ_d)
+	"uniform sampler2D texRecon;"		// volume of reconstruction: y_b
+	"uniform sampler2D texGradient;"	// quality gradient
+
+	// texOpenBeam = φ_d
+	// texSinoOrg = z_d
+	// texReconTest = y_b
+	// texSinoTest = ln(λ_d / φ_d)
+	// texLikelihood = f(y, φ)
+	// texSinoRecon = ln(λ_d / φ_d)
+	// texRecon = y_b
 
 	"void main() {";
 
@@ -108,24 +103,66 @@ const char code_vertex_sinogram[] =
 const char code_fragment_default[] = "gl_FragColor.rgb = texture2D(tex0, gl_TexCoord[0].xy).rgb;";
 
 const char code_fragment_guess_ToRecon_FromSinoOrg[] =
+	// projection: position of current sinogram slice in sinogram texture
+	// texSinoOrg = z_d
+	// texOpenBeam = φ_d
+	// λ_d = φ_d exp(∑_b p_bd y_b)
+	// result = texRecon y_b = log(z_d / φ_d) / ∑_b p_bd 1
 	"vec2 pos = vec2(gl_TexCoord[0].x, projection);"
-	"gl_FragColor.r = log(texture2D(texSinoOrg, pos).r / texture1D(texIntensity, pos.x).r) / step;";
+	"gl_FragColor.r = log(texture2D(texSinoOrg, pos).r / texture1D(texOpenBeam, pos.x).r) / step;";
 
+// apply circular mask. Set everything outside of circle to zero.
 const char code_fragment_mask_ToReconTest_FromRecon[] =
+	// result = texReconTest = texRecon or 0
 	"if (distance(gl_TexCoord[0].xy, vec2(.5))<.5)"
 	"    gl_FragColor.r = min(0, texture2D(texRecon, gl_TexCoord[0].xy).r);"
 	"else"
 	"    gl_FragColor.r = 0.f;";
 
+// build a sinogram from a reconstructed volume
 const char code_fragment_project_ToSinoTest_FromReconTest[] =
 	"vec2 dir = texture1D(texAngleMatrix, gl_TexCoord[0].y).rg;"
 	"mat2 matrix = mat2(dir.x, dir.y, -dir.y, dir.x);"
 	"vec2 coord1 = vec2(.5f) + matrix * vec2(gl_TexCoord[0].x - center, depth - .5f);"
+	// texReconTest = y_d
+	// λ_d = φ_d exp(∑_b p_bd y_d)
+	// result = texSinoTest = ln(λ_d / φ_d) = ∑_b p_bd y_d
 	"gl_FragColor.r = texture2D(texReconTest, coord1).r;";
 
+// calculate likelihood of reconstructed sinogram
 const char code_fragment_likelihood_FromSinoOrgAndSinoTest[] =
-	"float sinoTest = texture1D(texIntensity, gl_TexCoord[0].x).r * exp(texture2D(texSinoTest, gl_TexCoord[0].xy).r);"
-	"gl_FragColor.r = texture2D(texSinoOrg, gl_TexCoord[0].xy).r * log(sinoTest) - sinoTest;";
+	// texOpenBeam = φ_d
+	// texSinoTest = ln(λ_d / φ_d)
+	// texSinoOrg = z_d
+	// f(y, φ) = z_d * ln(λ_d) - λ_d
+
+	// openBeam = φ_d
+	"float openBeam = texture1D(texOpenBeam, gl_TexCoord[0].x).r;"
+	// lambda = λ_d = exp(texSinoTest) * openBeam
+	"float lambda = exp(texture2D(texSinoTest, gl_TexCoord[0].xy).r) * openBeam;"
+
+	// result = f(y, φ) = z_d * ln(λ_d) - λ_d = texSinoOrg * openBeam * log(lambda) - lambda
+	"gl_FragColor.r = texture2D(texSinoOrg, gl_TexCoord[0].xy).r * log(lambda) - lambda;";
+
+// calculate likelihood gradient
+const char code_fragment_gradient_FromSinoOrgAndSinoRecon[] =
+	"vec2 pos = vec2(gl_TexCoord[0].x, projection);"
+	// texOpenBeam = φ_d
+	// texSinoOrg = z_d
+	// texSinoRecon = ln(λ_d / φ_d)
+	// result = gradient = ∑_d p_bd z_d - λ_d
+	"gl_FragColor.r = texture2D(texSinoOrg, pos).r - texture1D(texOpenBeam, gl_TexCoord[0].x).r * exp(texture2D(texSinoRecon, pos).r);";
+
+// add likelihood gradient to reconstruction
+const char code_fragment_addGradient_FromReconAndGradient[] =
+	// texRecon = y_b
+	// texGradient = ∑_d p_bd z_d - λ_d
+	// result = y^*_b = y_b + c * ∑_d p_bd z_d - λ_d
+	//		= y_b + step * gradient
+	"if (distance(gl_TexCoord[0].st, vec2(.5))<=.5)"
+	"    gl_FragColor.r = min(0, texture2D(texRecon, vec2(gl_TexCoord[0].st)).r + step * texture2D(texGradient, vec2(gl_TexCoord[0].st)).r);"
+	"else"
+	"    gl_FragColor.r = 0.f;";
 
 const char code_fragment_sumLikelihood[] =
 	"vec2 coord3 = gl_TexCoord[0].xy + sumStep;"
@@ -135,23 +172,10 @@ const char code_fragment_sumLikelihood[] =
 	"texture2D(texLikelihood, "
 	"coord3).r;";
 
-const char code_fragment_gradient_FromSinoOrgAndSinoRecon[] =
-	"vec2 pos = vec2(gl_TexCoord[0].x, projection);"
-	"gl_FragColor.r = texture2D(texSinoOrg, pos).r - texture1D(texIntensity, gl_TexCoord[0].x).r * exp(texture2D(texSinoRecon, pos).r);";
-
-const char code_fragment_addGradient_FromReconAndGradient[] =
-	"if (distance(gl_TexCoord[0].st, vec2(.5))<=.5)"
-	"    gl_FragColor.r = min(0, texture2D(texRecon, vec2(gl_TexCoord[0].st)).r + step * texture2D(texGradient, vec2(gl_TexCoord[0].st)).r);" // TODO:
-																																			  // max
-																																			  // at 0?
-	//	"    gl_FragColor.r = texture2D(texRecon, vec2(gl_TexCoord[0].st)).r + step * texture2D(texGradient, vec2(gl_TexCoord[0].st)).r;"
-	"else"
-	"    gl_FragColor.r = 0.f;";
-
 TextureTypes textureType(Textures tex)
 {
 	switch (tex) {
-	case Tex_Intensity:
+	case Tex_OpenBeam:
 		return TexT_SinoLine;
 	case Tex_SinoOrg:
 		return TexT_Sino;
@@ -172,7 +196,7 @@ TextureTypes textureType(Textures tex)
 	case Tex_Gradient:
 		return TexT_Volume;
 	default:
-		assert(!"Unknown Texture.");
+		assert(!"Unknown texture.");
 		return TexT_Count;
 	}
 }
@@ -188,7 +212,7 @@ bool is2DTexture(TextureTypes texType)
 	case TexT_SinoColumnMatrix:
 		return false;
 	default:
-		assert(false);
+		assert(!"Unknown texture type");
 		return true;
 	}
 }

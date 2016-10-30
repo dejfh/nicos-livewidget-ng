@@ -21,6 +21,16 @@ void QtValidator::invokeFinished()
 	emit procDone();
 }
 
+void QtValidator::onPrepareProc()
+{
+	emit prepareProcCalled();
+}
+
+void QtValidator::onValidationProc()
+{
+	emit validationProcCalled();
+}
+
 void QtValidator::onValidationStarted()
 {
 	emit validationStarted();

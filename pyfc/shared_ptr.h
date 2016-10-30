@@ -9,30 +9,30 @@
  * // Example:
  *
  * // Assuming:
- * class Base;
- * class DerivedA : Base;
- * class DerivedB : Base;
- * class DerivedB2 : DerivedB;
+ * class A;
+ * class B1;
+ * class B2 : B1;
+ * class C : A, B2;
  *
  * // Usage:
  *
  * // Type definitions:
- * using PtrBase = InheritPtr<Base>;
- * using PtrA = InheritPtr<A, PtrBase>;
- * using PtrB = InheritPtr<B, PtrBase>;
- * using PtrB2 = InheritPtr<B2, PtrB>;
+ * using PtrA = InheritPtr<A>;
+ * using PtrB1 = InheritPtr<B1>;
+ * using PtrB2 = InheritPtr<B1, PtrB1>;
+ * using PtrC = InheritPtr<C, PtrA, PtrB2>;
  *
  * // Creating:
- * PtrBase* base = PtrBase::create(...);
- * PtrA* a = PtrB2::create(...);
- * PtrB* b = PtrB2::create(...);
+ * PtrA* a = PtrA::create(...);
+ * PtrB1* b1 = PtrB1::create(...);
  * PtrB2* b2 = PtrB2::create(...);
+ * PtrC* c = PtrC::create(...);
  *
  * Allowed conversions:
- * base = a;
- * base = b;
- * base = b2;
- * b = b2;
+ * a = c;
+ * b1 = b2;
+ * b1 = c;
+ * b2 = c;
  *
   * */
 
@@ -40,60 +40,33 @@ namespace pyfc
 {
 
 template <typename Type, typename... Bases>
-struct InheritPtr;
-
-template <typename Type>
-struct InheritPtr<Type> {
-	using type = Type;
-
+struct InheritPtr : Bases... {
 	virtual ~InheritPtr() = default;
 
-	virtual type *get() const = 0;
+	virtual Type *get() const = 0;
 
-	virtual operator std::shared_ptr<type>() const = 0;
+	virtual std::shared_ptr<volatile const void> getOwnership() const = 0;
 
-	type *operator->() const
+	operator std::shared_ptr<Type>() const
+	{
+		return std::shared_ptr<Type>(getOwnership(), get());
+	}
+
+	Type *operator->() const
 	{
 		return get();
 	}
-	type &operator*() const
+	Type &operator*() const
 	{
 		return *get();
 	}
 
-	static InheritPtr<Type> *create(std::shared_ptr<Type>);
-};
-
-template <typename Type, typename Base, typename... MoreBases>
-struct InheritPtr<Type, Base, MoreBases...> : Base, InheritPtr<Type, MoreBases...> {
-	using type = Type;
-	using base_type = typename Base::type;
-
-	virtual ~InheritPtr() = default;
-
-	virtual type *get() const = 0;
-
-	virtual operator std::shared_ptr<type>() const = 0;
-
-	type *operator->() const
-	{
-		return get();
-	}
-	type &operator*() const
-	{
-		return *get();
-	}
-
-	virtual operator std::shared_ptr<base_type>() const override
-	{
-		return this->operator std::shared_ptr<type>();
-	}
-
-	static InheritPtr<Type, Base, MoreBases...> *create(std::shared_ptr<Type>);
+	static InheritPtr<Type, Bases...> *create(std::shared_ptr<Type>);
 };
 
 template <typename Type, typename... Bases>
 struct FinalPtr : InheritPtr<Type, Bases...> {
+	using type = Type;
 	virtual ~FinalPtr() = default;
 
 	FinalPtr() = default;
@@ -115,22 +88,24 @@ struct FinalPtr : InheritPtr<Type, Bases...> {
 		return ptr.get();
 	}
 
-	virtual operator std::shared_ptr<Type>() const override
+	virtual std::shared_ptr<volatile const void> getOwnership() const
 	{
 		return ptr;
 	}
 };
 
-template <typename Type>
-InheritPtr<Type> *InheritPtr<Type>::create(std::shared_ptr<Type> ptr)
+template <typename Type, typename... Bases>
+InheritPtr<Type, Bases...> *InheritPtr<Type, Bases...>::create(std::shared_ptr<Type> ptr)
 {
-	return new FinalPtr<Type>(std::move(ptr));
+	return new FinalPtr<Type, Bases...>(std::move(ptr));
 }
 
-template <typename Type, typename Base, typename... MoreBases>
-InheritPtr<Type, Base, MoreBases...> *InheritPtr<Type, Base, MoreBases...>::create(std::shared_ptr<Type> ptr)
+template <typename TFinalPtr, typename... TArgs>
+TFinalPtr *make_final_ptr(TArgs &&... args)
 {
-	return new FinalPtr<Type, Base, MoreBases...>(std::move(ptr));
+	using Type = typename TFinalPtr::type;
+	std::shared_ptr<Type> ptr = std::make_shared<Type>(std::forward<TArgs>(args)...);
+	return new TFinalPtr(std::move(ptr));
 }
 
 } // namespace pyfc

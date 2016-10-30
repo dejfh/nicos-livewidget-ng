@@ -48,6 +48,7 @@ public:
 	{
 		if (m_predecessor.unguarded() == predecessor)
 			return;
+		m_isValid = false;
 		this->invalidate();
 		this->unregisterAsSuccessor(m_predecessor.unguarded());
 		this->registerAsSuccessor(predecessor);
@@ -65,8 +66,9 @@ public:
 public:
 	virtual void predecessorInvalidated(const Predecessor *) override
 	{
-		this->invalidate();
+		// Order is important: isValid has to be false during callbacks invoked by invalidate.
 		m_isValid = false;
+		this->invalidate();
 	}
 
 	// Validatable interface

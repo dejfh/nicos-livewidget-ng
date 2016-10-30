@@ -11,7 +11,7 @@ namespace hlp
 {
 
 /**
- * @brief Suppress compiler warnings for given unused variables.
+ * @brief Suppress compiler warnings for given unreferenced variables.
  *
  * Especially usefull for lock guards like std::lock_guard, hlp::ThreadsafeGuard or hlp::python::Gil.
  */

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Image Plot Demo."""
+"""Image Plot Demo"""
 
 import sys
 import glob
