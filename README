@@ -1,21 +1,23 @@
 ==== Project Structure ====
 
 + fc:		FilterChain (C++)
-+ fctest:	TestCases for the FilterChain (C++)
-+ fits:		Wrapper-Classes to easly handle fits files from (C++)
-+ helper:	Helper for general usage (C++)
-+ Icons:	Icons (svg, png)
-+ ipw:		ImagePlotWidget (C++)
-+ lw:		An example LiveWidget (C++), obsolete - use python Version
-+ ndim:		Pointer to N-dimensional arrays with arbritrary strides (C++)
-+ ndimdata:	Helper and algorithms to use with ndim (C++)
-+ pydemo:	An example LiveWidget (Python)
 + pyfc:		Python FilterChain-Wrapper (Python-C++)
-+ pyfctest:	TestCases for the Classes of FilterChain-Wrapper (C++)
++ pyfcfits:	An example for a library interacting with pyfc (Python-C++)
++ pydemo:	An example LiveWidget (Python)
++ ipw:		ImagePlotWidget (C++)
 + pyipw:	Python ImagePlotWidget-Wrapper (Python-C++)
 + tomo:		Tomography Library using openGL (C++)
 + pytomo:	Python Tomography-Wrapper (Python-C++)
-+ tomotest:	Test-Application for the Tomography Library (C++)
++ fits:		Wrapper-Classes to easly handle fits files from (C++)
++ ndim:		Pointer to N-dimensional arrays with arbritrary strides (C++)
++ ndimdata:	Helper and algorithms to use with ndim (C++)
++ helper:	Helper for general usage (C++)
++ Icons:	Icons (svg, png)
+
++ fctest:	TestCases for the FilterChain (C++), obsolete
++ lw:		An example LiveWidget (C++), obsolete - use python Version
++ pyfctest:	TestCases for the Classes of FilterChain-Wrapper (C++), obsolete
++ tomotest:	Test-Application for the Tomography Library (C++), obsolete
 + tw:		TomographyWidget (C++), obsolete - use python Version
 
 ==== Building ====
